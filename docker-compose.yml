@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  backend:
+    build: waitlist-backend
+    ports:
+      - "8080:8080"
+    networks:
+      - my-network
+    depends_on:
+      - db
+
+  frontend:
+    build: waitlist-frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - my-network
+    depends_on:
+      - backend
+  
+  db:
+    build: waitlist-db
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: waitlist
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
