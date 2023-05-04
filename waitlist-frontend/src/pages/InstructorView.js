@@ -50,8 +50,8 @@ function InstructorView(props) {
         getQueueStatus();
         getRoomInfo();
         getCurrentlyHelpingStudent();
-      }, 500);
-      return () => clearInterval(interval);
+      }, 500); // in ms, refresh speed
+      return () => clearInterval(interval); // clean unmount
     }, [user_id, course_id, get]);
 
     async function submitRoomInfo() {
@@ -125,7 +125,7 @@ function InstructorView(props) {
                                                     />
                                                     <label
                                                         className="text-secondary disabled"
-                                                        for="location"
+                                                        htmlFor="location"
                                                     >
                                                         Location
                                                     </label>

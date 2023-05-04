@@ -1,133 +1,69 @@
 import "../App.css";
 import Queue from "./subpages/Queue";
 import { useParams } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 
-//refactored version for functional
 function StudentView({ useAuth }) {
-    //Queue and API statics
-    const headers = [
-        "Position",
-        "Name",
-        "Estimated Time",
-        "Query Description",
-        "Instructor",
-    ];
-    const postOptions = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-    };
-
+    const baseURL = 'http://localhost:8080/student';
+    const headers = ["Position","Name","Estimated Time","Query Description","Instructor"];
     const { user_id, course_id } = useParams();
+    const [queueData, setQueueData] = useState([]);
+    const [queue_time, setQueueTime] = useState("5");
+    const [queue_topic_description, setQueueTopicDescription] = useState("");
+    const [is_editing_estimated_time, setIsEditingEstimatedTime] = useState(false);
+    const [is_editing_topic_description, setIsEditingTopicDescription] = useState(false);
+    const [instructorLocation, setInstructorLocation] = useState("Your Instructor's Room");
+    const [mode, setMode] = useState("ENTER"); // other options EXIT, SELECTED
 
-    //State to track for queue
-    const [state, setState] = useState({
-        user_id: user_id,
-        course_id: course_id,
-        queueData: [],
-        queue_time: "5",
-        queue_topic_description: "",
-        is_editing_estimated_time: false,
-        is_editing_topic_description: false,
-        instructorLocation: "Your Instructor's Room",
-        instructor_id: "",
-        mode: "ENTER", // other options, EXIT, SELECTED
-    });
+    const get = async (endpoint, request) => {
+        const parameters = new URLSearchParams(request).toString();
+        const response = await fetch(`${baseURL}/${endpoint}?${parameters}`);
+        if (!response.ok) throw new Error(`Error getting ${endpoint}: ${response.statusText}`);
+        return await response.json();
+      }
+  
+      const post = async (endpoint, request) => {
+          const postOptions = { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(request)};
+          const response = await fetch(`${baseURL}/${endpoint}`, postOptions);
+          if (!response.ok) throw new Error(`Error posting ${endpoint}: ${response.statusText}`);
+          return await response.json();
+      }
 
-    //Grab queue status when rendered
     useEffect(() => {
         const interval = setInterval(() => {
             getQueueStatus();
             getEntryStatus();
-        }, 500); // in ms, repeatedly call the database for changes
-        return () => clearInterval(interval); // cleanup when component unmounts
-    }, [user_id, course_id, getQueueStatus, getEntryStatus]);
+        }, 500); // in ms, refresh speed
+        return () => clearInterval(interval); // clean unmount
+    }, [user_id, course_id, get]);
 
-    async function getQueueStatus() {
-        const dataIn = {user_id: user_id, course_id: course_id};
-        const parameters = new URLSearchParams(dataIn).toString();
-        const response = await fetch(
-            `http://localhost:8080/student/getQueueStatus?${parameters}`
-        );
-        if (!response.ok)
-            throw new Error(
-                `Error getting queue status: ${response.statusText}`
-            );
-        const dataOut = await response.json();
-        setState(prevState => ({ ...prevState, queueData: dataOut }));
+    const getQueueStatus = useMemo(() => async () => {
+        const request = {user_id: user_id, course_id: course_id};
+        const response = await get("getQueueStatus", request);
+        setQueueData(response);
+      }, [user_id, course_id]);
+    async function enqueue() {
+        const request = {user_id: user_id, course_id: course_id, queue_estimated_time: queue_time, queue_topic_description: queue_topic_description};
+        const response = await post('enqueue', request);
     }
-    //Handles button functionality for entering the queue
-    async function handleClickAdd() {
-        const dataIn = {
-            user_id: state.user_id,
-            course_id: state.course_id,
-            queue_estimated_time: state.queue_time,
-            queue_topic_description: state.queue_topic_description
-        };
-        postOptions["body"] = JSON.stringify(dataIn);
-        const response = await fetch(
-            "http://localhost:8080/student/enqueue",
-            postOptions
-        );
-        if (!response.ok)
-            throw new Error(
-                `Error adding student to waitlist: ${response.statusText}`
-            );
+    async function exitQueue(){
+        const request = {user_id, course_id};
+        const response = await post('exitQueue', request);
     }
-
-    //Handles button functionality for exiting the queue
-    async function handleClickLeave() {
-        console.log("Leaving");
-        const dataIn = {
-            user_id: user_id, course_id: course_id
-        };
-        postOptions["body"] = JSON.stringify(dataIn);
-        const response = await fetch(
-            "http://localhost:8080/student/exitQueue",
-            postOptions
-        );
-        if (!response.ok)
-            throw new Error(
-                `Error adding student to waitlist: ${response.statusText}`
-            );
-    }
-
-    // copied from instructor view with a few changes @TODO
     async function getRoomInfo(instructor_id) {
-        const dataIn = { user_id: instructor_id, course_id: course_id };
-        const parameters = new URLSearchParams(dataIn).toString();
-        const response = await fetch(
-            `http://localhost:8080/instructor/getRoomInfo?${parameters}`
-        );
-        if (!response.ok)
-            throw new Error(
-                `Error getting queue status: ${response.statusText}`
-            );
-        const dataOut = await response.json();
-        setState(prevState => ({
-            ...prevState,
-            instructorLocation: dataOut[0]["permission_location"]
-        }));
+        const request = {user_id: instructor_id, course_id: course_id};
+        const response = await get("getRoomInfo", request);
+        console.log(response);
+        setInstructorLocation(response[0]["permission_location"]);
     }
 
-    // updates button components from current database values
     async function getEntryStatus() {
-        const dataIn = {user_id, course_id};
-        const parameters = new URLSearchParams(dataIn).toString();
-        const response = await fetch(
-            `http://localhost:8080/student/getEntryStatus?${parameters}`
-        );
-        if (!response.ok) {
-            console.error("Error checking entry status: ", response.statusText);
-            return;
-        }
-        const results = await response.json();
+        const request = {user_id, course_id};
+        const results = await get("getEntryStatus", request);
         let newMode = "ENTER";
         if(!results[0]) {
-            setState(prevState => ({
-                ...prevState,
-                mode: newMode
-            }));
+            setMode(newMode);
             return;
         }
         const userPresent = results[0].hasOwnProperty("user_id");
@@ -145,15 +81,12 @@ function StudentView({ useAuth }) {
         else{
         newMode = "ENTER";
         }
-        setState(prevState => ({
-            ...prevState,
-            mode: newMode
-        }));
-    }
+       setMode(newMode);
+    }  
 
     let tk = localStorage.getItem("token");
 
-    if (parseInt(state.user_id) !== parseInt(tk)) {
+    if (parseInt(user_id) !== parseInt(tk)) {
         return <>You are not allowed to view this page.</>;
     } else {
         return (
@@ -169,7 +102,7 @@ function StudentView({ useAuth }) {
                         <div className="col-lg-3 text-end">
                             <a
                                 class="btn btn-outline-light btn-lg px-2 mx-2 my-2 my-sm-0"
-                                href={"/dashboard/" + state.user_id}
+                                href={"/dashboard/" + user_id}
                             >
                                 Back to Dashboard
                             </a>
@@ -182,26 +115,19 @@ function StudentView({ useAuth }) {
                             <div className="card-body justify-content-center text-center">
                                 <div className="row justify-content-center text-center">
                                     <div className="col-lg-6">
-                                        {state.is_editing_estimated_time ? (
+                                        {is_editing_estimated_time ? (
                                             <>
                                                 <div className="form-floating">
                                                     <input
                                                         className="form-control bottom-border w-150"
                                                         type="text"
                                                         id="changeTime"
-                                                        value={state.queue_time}
-                                                        onChange={(e) =>
-                                                            setState({
-                                                                ...state,
-                                                                queue_time:
-                                                                    e.target
-                                                                        .value,
-                                                            })
-                                                        }
+                                                        value={queue_time}
+                                                        onChange={(e) => setQueueTime(e.target.value)}
                                                     />
                                                     <label
                                                         className="text-secondary disabled"
-                                                        for="changeTime"
+                                                        htmlFor="changeTime"
                                                     >
                                                         Time Needed
                                                     </label>
@@ -209,14 +135,11 @@ function StudentView({ useAuth }) {
                                                     <button
                                                         className="btn btn-primary btn-sm mt-1 mb-2 btn-modified"
                                                         hidden={
-                                                            state.mode !==
+                                                            mode !==
                                                             "ENTER"
                                                         }
                                                         onClick={() =>
-                                                            setState({
-                                                                ...state,
-                                                                is_editing_estimated_time: false,
-                                                            })
+                                                            setIsEditingEstimatedTime(false)
                                                         }
                                                     >
                                                         Save
@@ -228,32 +151,29 @@ function StudentView({ useAuth }) {
                                                 <h5
                                                     className="text-center mt-2"
                                                     hidden={
-                                                        state.mode !== "ENTER"
+                                                        mode !== "ENTER"
                                                     }
                                                 >
                                                     Time Needed:{" "}
                                                     <small className="text-muted">
-                                                        {state.queue_time + " "}
+                                                        {queue_time + " "}
                                                         minutes
                                                     </small>
                                                 </h5>
                                                 <button
                                                     className="btn btn-dark btn-sm mt-1 mb-2 btn-modified"
                                                     hidden={
-                                                        state.mode !== "ENTER"
+                                                        mode !== "ENTER"
                                                     }
                                                     onClick={() =>
-                                                        setState({
-                                                            ...state,
-                                                            is_editing_estimated_time: true,
-                                                        })
+                                                        setIsEditingEstimatedTime(true)
                                                     }
                                                 >
                                                     Edit Time Needed
                                                 </button>
                                             </>
                                         )}
-                                        {state.is_editing_topic_description ? (
+                                        {is_editing_topic_description ? (
                                             <>
                                                 <div className="form-floating">
                                                     <input
@@ -262,15 +182,10 @@ function StudentView({ useAuth }) {
                                                         id="changeDesc"
                                                         maxLength="120"
                                                         value={
-                                                            state.queue_topic_description
+                                                            queue_topic_description
                                                         }
                                                         onChange={(e) =>
-                                                            setState({
-                                                                ...state,
-                                                                queue_topic_description:
-                                                                    e.target
-                                                                        .value,
-                                                            })
+                                                            setQueueTopicDescription(e.target.value)
                                                         }
                                                     />
                                                     <label
@@ -282,14 +197,11 @@ function StudentView({ useAuth }) {
                                                     <button
                                                         className="btn btn-primary btn-sm mt-1 mb-1 btn-modified"
                                                         hidden={
-                                                            state.mode !==
+                                                            mode !==
                                                             "ENTER"
                                                         }
                                                         onClick={() =>
-                                                            setState({
-                                                                ...state,
-                                                                is_editing_topic_description: false,
-                                                            })
+                                                            setIsEditingTopicDescription(false)
                                                         }
                                                     >
                                                         Save
@@ -301,26 +213,23 @@ function StudentView({ useAuth }) {
                                                 <h5
                                                     className="text-center mt-2"
                                                     hidden={
-                                                        state.mode !== "ENTER"
+                                                        mode !== "ENTER"
                                                     }
                                                 >
                                                     Your Question:{" "}
                                                     <small className="text-muted">
                                                         {
-                                                            state.queue_topic_description
+                                                            queue_topic_description
                                                         }
                                                     </small>
                                                 </h5>
                                                 <button
                                                     className="btn btn-dark btn-sm mt-1 mb-2 btn-modified"
                                                     hidden={
-                                                        state.mode !== "ENTER"
+                                                        mode !== "ENTER"
                                                     }
                                                     onClick={() =>
-                                                        setState({
-                                                            ...state,
-                                                            is_editing_topic_description: true,
-                                                        })
+                                                        setIsEditingTopicDescription(true)
                                                     }
                                                 >
                                                     Add Question Description
@@ -333,9 +242,9 @@ function StudentView({ useAuth }) {
                                                     className="btn btn-dark btn-sm mt-2 btn-modified"
                                                     id={"enter"}
                                                     title={"Enter Waitlist"}
-                                                    onClick={handleClickAdd}
+                                                    onClick={enqueue}
                                                     hidden={
-                                                        state.mode !== "ENTER"
+                                                        mode !== "ENTER"
                                                     }
                                                 >
                                                     {"Enter Waitlist"}
@@ -344,14 +253,15 @@ function StudentView({ useAuth }) {
                                                     className="btn btn-dark btn-sm mt-2 btn-modified"
                                                     id={"leave"}
                                                     title={"Leave Waitlist"}
-                                                    onClick={handleClickLeave}
+                                                    onClick={exitQueue}
                                                     hidden={
-                                                        state.mode !== "EXIT"
+                                                        mode !== "EXIT"
+                                                        // false
                                                     }
                                                 >
                                                     {"Leave Waitlist"}
                                                 </button>
-                                                { <p hidden={state.mode !== "SELECTED"}>You've been selected! Head to {state.instructorLocation}</p> }
+                                                { <p hidden={mode !== "SELECTED"}>You've been selected! Head to {instructorLocation}</p> }
                                             </div>
                                         </div>
                                     </div>
@@ -362,10 +272,9 @@ function StudentView({ useAuth }) {
                     <div class="col-lg-6 mb-2">
                         <div class="card">
                             <div class="card-body">
-                                {state.queueData.length ? <Queue headers={headers} data={state.queueData}/>
+                                {queueData.length ? <Queue headers={headers} data={queueData}/>
                                 : <>You'll be the first!</>
-                                }
-                                
+                                }        
                             </div>
                         </div>
                     </div>
