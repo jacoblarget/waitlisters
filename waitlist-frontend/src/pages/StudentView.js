@@ -4,7 +4,8 @@ import { useParams } from "react-router-dom";
 import React, { useEffect, useState, useMemo } from "react";
 
 function StudentView({ useAuth }) {
-    const baseURL = 'http://localhost:8080/student';
+    const studentBaseURL = 'http://localhost:8080/student';
+    const instructorBaseURL = 'http://localhost:8080/instructor'
     const headers = ["Position","Name","Estimated Time","Query Description","Instructor"];
     const { user_id, course_id } = useParams();
     const [queueData, setQueueData] = useState([]);
@@ -15,14 +16,14 @@ function StudentView({ useAuth }) {
     const [instructorLocation, setInstructorLocation] = useState("Your Instructor's Room");
     const [mode, setMode] = useState("ENTER"); // other options EXIT, SELECTED
 
-    const get = async (endpoint, request) => {
+    const get = async (endpoint, request, baseURL) => {
         const parameters = new URLSearchParams(request).toString();
         const response = await fetch(`${baseURL}/${endpoint}?${parameters}`);
         if (!response.ok) throw new Error(`Error getting ${endpoint}: ${response.statusText}`);
         return await response.json();
       }
   
-      const post = async (endpoint, request) => {
+      const post = async (endpoint, request, baseURL) => {
           const postOptions = { method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(request)};
           const response = await fetch(`${baseURL}/${endpoint}`, postOptions);
@@ -30,59 +31,61 @@ function StudentView({ useAuth }) {
           return await response.json();
       }
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            getQueueStatus();
-            getEntryStatus();
-        }, 500); // in ms, refresh speed
-        return () => clearInterval(interval); // clean unmount
-    }, [user_id, course_id, get]);
-
-    const getQueueStatus = useMemo(() => async () => {
-        const request = {user_id: user_id, course_id: course_id};
-        const response = await get("getQueueStatus", request);
-        setQueueData(response);
-      }, [user_id, course_id]);
-    async function enqueue() {
-        const request = {user_id: user_id, course_id: course_id, queue_estimated_time: queue_time, queue_topic_description: queue_topic_description};
-        const response = await post('enqueue', request);
-    }
-    async function exitQueue(){
+    const getQueueAndEntryStatus = async () => {
         const request = {user_id, course_id};
-        const response = await post('exitQueue', request);
-    }
-    async function getRoomInfo(instructor_id) {
-        const request = {user_id: instructor_id, course_id: course_id};
-        const response = await get("getRoomInfo", request);
-        console.log(response);
-        setInstructorLocation(response[0]["permission_location"]);
-    }
+        const [queueStatusResponse, entryStatusResponse] = await Promise.all([
+            get("getQueueStatus", request, studentBaseURL),
+            get("getEntryStatus", request, studentBaseURL)
+        ]);
+        
+        setQueueData(queueStatusResponse);
 
-    async function getEntryStatus() {
-        const request = {user_id, course_id};
-        const results = await get("getEntryStatus", request);
         let newMode = "ENTER";
-        if(!results[0]) {
+        if(!entryStatusResponse[0]) {
             setMode(newMode);
             return;
         }
-        const userPresent = results[0].hasOwnProperty("user_id");
-        const instructorSelected = results[0]["instructor_id"] !== null;
+
+        const userPresent = entryStatusResponse[0].hasOwnProperty("user_id");
+        const instructorSelected = entryStatusResponse[0]["instructor_id"] !== null;
+
         if(userPresent){
             if(instructorSelected){
-              newMode = "SELECTED";
-              const instructor_id = results[0]["instructor_id"];
-              getRoomInfo(instructor_id);
+                newMode = "SELECTED";
+                const instructor_id = entryStatusResponse[0]["instructor_id"];
+                await getRoomInfo(instructor_id);
+            } else {
+                newMode = "EXIT";
             }
-            else{
-              newMode = "EXIT";
-            }
+        } else {
+            newMode = "ENTER";
         }
-        else{
-        newMode = "ENTER";
-        }
-       setMode(newMode);
-    }  
+
+        setMode(newMode);
+    }
+
+    async function getRoomInfo(instructor_id) {
+        const request = {user_id: instructor_id, course_id: course_id};
+        const response = await get("getRoomInfo", request, instructorBaseURL);
+        setInstructorLocation(response[0]["permission_location"]);
+    }
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            getQueueAndEntryStatus();
+        }, 500); // in ms, refresh speed
+        return () => clearInterval(interval); // clean unmount
+    }, [user_id, course_id, getQueueAndEntryStatus]);
+
+
+    async function enqueue() {
+        const request = {user_id: user_id, course_id: course_id, queue_estimated_time: queue_time, queue_topic_description: queue_topic_description};
+        const response = await post('enqueue', request, studentBaseURL);
+    }
+    async function exitQueue(){
+        const request = {user_id, course_id};
+        const response = await post('exitQueue', request, studentBaseURL);
+    }
 
     let tk = localStorage.getItem("token");
 
