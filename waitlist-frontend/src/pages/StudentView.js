@@ -9,9 +9,8 @@ function StudentView({ useAuth }) {
     const headers = ["Position","Name","Estimated Time","Query Description","Instructor"];
     const { user_id, course_id } = useParams();
     const [queueData, setQueueData] = useState([]);
-    const [queue_time, setQueueTime] = useState("5");
+    const [queue_time, setQueueTime] = useState("");
     const [queue_topic_description, setQueueTopicDescription] = useState("");
-    const [isEditing, setIsEditing] = useState(false);
     const [instructorLocation, setInstructorLocation] = useState("Your Instructor's Room");
     const [mode, setMode] = useState("ENTER"); // other options EXIT, SELECTED
 
@@ -78,8 +77,10 @@ function StudentView({ useAuth }) {
 
 
     async function enqueue() {
-        const request = {user_id: user_id, course_id: course_id, queue_estimated_time: queue_time, queue_topic_description: queue_topic_description};
-        const response = await post('enqueue', request, studentBaseURL);
+      const request = {user_id: user_id, course_id: course_id,
+        queue_estimated_time: queue_time || 5, // set default
+        queue_topic_description: queue_topic_description};
+      const response = await post('enqueue', request, studentBaseURL);
     }
     async function exitQueue(){
         const request = {user_id, course_id};
@@ -111,21 +112,14 @@ function StudentView({ useAuth }) {
       <div class="card-body">
         <div class="d-flex justify-content-center align-items-center mb-3">
           <div class="w-50">
-            <div class="form-floating mb-3">
-              <input class="form-control bottom-border" type="text" id="changeTime" hidden={mode !== 'ENTER'} value={queue_time} onChange={(e) => setQueueTime(e.target.value)} />
-              <label class="text-secondary disabled" for="changeTime">Time Needed</label>
+            <div class="mb-3" hidden={mode !== 'ENTER'}>
+              <input class="form-control bottom-border" placeholder={headers[2]} defaultValue={5} type="number" id="changeTime" value={queue_time} onChange={(e) => setQueueTime(e.target.value)} />
+              <input class="form-control bottom-border" placeholder={headers[3]} type="text" id="changeDesc" maxLength="120" value={queue_topic_description} onChange={(e) => setQueueTopicDescription(e.target.value)} />
             </div>
-            {/* <h5 class="text-center mt-2" hidden={mode !== "ENTER"}>Time Needed: <small class="text-muted">{queue_time} minutes</small></h5> */}
-            <div class="form-floating mb-3">
-              <input class="form-control bottom-border" type="text" id="changeDesc" maxLength="120" value={queue_topic_description} onChange={(e) => setQueueTopicDescription(e.target.value)} />
-              <label class="text-secondary disabled" for="changeTime">Question</label>
-            </div>
-            {/* <h5 class="text-center mt-2" hidden={mode !== "ENTER"}>Your Question: <small class="text-muted">{queue_topic_description}</small></h5> */}
-            {queue_time + " " + queue_topic_description}
             <div class="d-flex justify-content-center align-items-center">
               <div class="w-75">
-                <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" id={"enter"} title={"Enter Waitlist"} onClick={enqueue} hidden={mode !== "ENTER"}>Enter Waitlist</button>
-                <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" id={"leave"} title={"Leave Waitlist"} onClick={exitQueue} hidden={mode !== "EXIT"}>Leave Waitlist</button>
+                <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" onClick={enqueue} hidden={mode !== "ENTER"}>Enter Waitlist</button>
+                <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" onClick={exitQueue} hidden={mode !== "EXIT"}>Leave Waitlist</button>
                 <p class="text-center mt-2" hidden={mode !== "SELECTED"}>You've been selected! Head to {instructorLocation}</p>
               </div>
             </div>
