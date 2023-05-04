@@ -1,164 +1,86 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import InstructorTable from "./subpages/InstructorTable.js";
 import "/app/src/App.css";
 import { useParams } from "react-router-dom";
 
 function InstructorView(props) {
-    // component-wide variables
-    // these won't change
-    const headers = [
-        "Position",
-        "Name",
-        "Estimated Time",
-        "Query Description",
-        "Instructor",
-    ];
-    const postOptions = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-    };
-    // these will change.
-    const { user_id } = useParams();
-    const { course_id } = useParams();
-    const [state, setState] = useState({
-        user_id: user_id,
-        course_id: course_id,
-        queueData: [],
-        isEditing: false,
-    });
-
-    // state variables for the room info.
+    const baseURL = 'http://localhost:8080/instructor';
+    const headers = ["Position","Name","Estimated Time","Query Description","Instructor"];
+    const { user_id, course_id } = useParams();
+    const [queueData, setQueueData] = useState("");
+    const [isEditing, setIsEditing] = useState("");
     const [roomInfo, setRoomInfo] = useState("");
-
-    //state variable for currently helping student
     const [currentlyHelpingStudent, setCurrentlyHelpingStudent] = useState("");
 
-    const handleRoomInfoChange = (event) => {
-        setRoomInfo(event.target.value);
-    };
+    const get = async (endpoint, request) => {
+      const parameters = new URLSearchParams(request).toString();
+      const response = await fetch(`${baseURL}/${endpoint}?${parameters}`);
+      if (!response.ok) throw new Error(`Error getting ${endpoint}: ${response.statusText}`);
+      return await response.json();
+    }
 
-    // ensure authenticated rendering
+    const post = async (endpoint, request) => {
+        const postOptions = { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(request)};
+        const response = await fetch(`${baseURL}/${endpoint}`, postOptions);
+        if (!response.ok) throw new Error(`Error posting ${endpoint}: ${response.statusText}`);
+        return await response.json();
+    }
+
+    const getRoomInfo = useMemo(() => async () => {
+      const request = {user_id: user_id, course_id: course_id};
+      const response = await get("getRoomInfo", request);
+      if (!isEditing) setRoomInfo(response[0]["permission_location"]);
+    }, [user_id, course_id, isEditing]);
+
+    const getCurrentlyHelpingStudent = useMemo(() => async () => {
+      const request = {user_id: user_id, course_id: course_id};
+      const response = await get("getCurrentlyHelpingStudent", request);
+      setCurrentlyHelpingStudent(response[0] === undefined ? "None" : response[0]["user_name"]);
+    }, [user_id, course_id]);
+
+    const getQueueStatus = useMemo(() => async () => {
+      const request = {user_id: user_id, course_id: course_id};
+      const response = await get("getQueueStatus", request);
+      setQueueData(response);
+    }, [user_id, course_id]);
+
     useEffect(() => {
-        const interval = setInterval(() => {
-            getQueueStatus();
-            getRoomInfo();
-            getCurrentlyHelpingStudent();
-        }, 500); // in ms, repeatedly call the database for changes
-        return () => clearInterval(interval); // cleanup when component unmounts
-    }, [
-        user_id,
-        course_id,
-        getQueueStatus,
-        getRoomInfo,
-        getCurrentlyHelpingStudent,
-    ]);
+      const interval = setInterval(() => {
+        getQueueStatus();
+        getRoomInfo();
+        getCurrentlyHelpingStudent();
+      }, 500);
+      return () => clearInterval(interval);
+    }, [user_id, course_id, get]);
 
-    // these functions handle user input handled on the back end
     async function submitRoomInfo() {
-        const dataIn = { user_id, course_id, permission_location: roomInfo };
-        postOptions["body"] = JSON.stringify(dataIn);
-        const response = await fetch(
-            `http://localhost:8080/instructor/setRoomInfo`,
-            postOptions
-        );
-        if (!response.ok)
-            throw new Error(
-                `No error setting room info: ${response.statusText}`
-            );
-        setState({ ...state, isEditing: false });
+        const request = { user_id: user_id, course_id: course_id, permission_location: roomInfo };
+        const response = await post('setRoomInfo', request);
+        setIsEditing(false);
     }
-
-    async function getRoomInfo() {
-        const dataIn = { user_id: user_id, course_id: course_id };
-        const parameters = new URLSearchParams(dataIn).toString();
-        const response = await fetch(
-            `http://localhost:8080/instructor/getRoomInfo?${parameters}`
-        );
-        if (!response.ok)
-            throw new Error(
-                `Error getting queue status: ${response.statusText}`
-            );
-        const dataOut = await response.json();
-        if (!state.isEditing) setRoomInfo(dataOut[0]["permission_location"]);
-    }
-
-    async function getCurrentlyHelpingStudent() {
-        const dataIn = { user_id: user_id, course_id: course_id };
-        const parameters = new URLSearchParams(dataIn).toString();
-        const response = await fetch(
-            `http://localhost:8080/instructor/getCurrentlyHelpingStudent?${parameters}`
-        );
-        if (!response.ok)
-            throw new Error(
-                `Error taking the next student: ${response.statusText}`
-            );
-        const dataOut = await response.json();
-        setCurrentlyHelpingStudent(
-            dataOut[0] === undefined ? "None" : dataOut[0]["user_name"]
-        );
-    }
-
-    async function getQueueStatus() {
-        const dataIn = { user_id: user_id, course_id: course_id };
-        const parameters = new URLSearchParams(dataIn).toString();
-        const response = await fetch(
-            `http://localhost:8080/instructor/getQueueStatus?${parameters}`
-        );
-        if (!response.ok)
-            throw new Error(
-                `Error getting queue status: ${response.statusText}`
-            );
-        const dataOut = await response.json();
-        setState({ ...state, queueData: dataOut });
-    }
+    
     async function takeNextStudent() {
-        const dataIn = { user_id: user_id, course_id: course_id };
-        postOptions["body"] = JSON.stringify(dataIn);
-        const response = await fetch(
-            `http://localhost:8080/instructor/takeNextStudent`,
-            postOptions
-        );
-        if (!response.ok)
-            throw new Error(
-                `Error taking the next student: ${response.statusText}`
-            );
-        const { results, message } = await response.json();
-        setState({ ...state, currentlyHelpingStudent: results[0].user_id });
+        const request = { user_id: user_id, course_id: course_id };
+        const response = await post('takeNextStudent', request);
+        setCurrentlyHelpingStudent(response[0].user_id)
     }
+    
     async function finishHelpingStudent() {
-        const dataIn = {};
-        dataIn["user_id"] = state.user_id;
-        dataIn["course_id"] = state.course_id;
-        postOptions["body"] = JSON.stringify(dataIn);
-        const response = await fetch(
-            `http://localhost:8080/instructor/finishHelpingStudent`,
-            postOptions
-        );
-        if (!response.ok)
-            throw new Error(
-                `Error in finishHelpingStudent, ${response.statusText}`
-            );
+        const request = {user_id: user_id, course_id: course_id };
+        const response = await post('finishHelpingStudent', request);
         setCurrentlyHelpingStudent("None");
     }
+    
     async function removeNoShowStudent() {
-        const dataIn = {};
-        dataIn["user_id"] = state.user_id;
-        dataIn["course_id"] = state.course_id;
-        postOptions["body"] = JSON.stringify(dataIn);
-        const response = await fetch(
-            `http://localhost:8080/instructor/removeNoShowStudent`,
-            postOptions
-        );
-        if (!response.ok)
-            throw new Error(
-                `Error removing No Show Student: ${response.statusText}`
-            );
-        setCurrentlyHelpingStudent("None");
+        const request = { user_id: user_id, course_id: course_id };
+        const response = await post('removeNoShowStudent', request);
+        setCurrentlyHelpingStudent('None');
     }
 
     let tk = localStorage.getItem("token");
 
-    if (parseInt(state.user_id) !== parseInt(tk)) {
+    if (parseInt(user_id) !== parseInt(tk)) {
         return <>You are not allowed to view this page.</>;
     } else {
         return (
@@ -174,7 +96,7 @@ function InstructorView(props) {
                         <div className="col-lg-3 text-end">
                             <a
                                 class="btn btn-outline-light btn-lg px-2 mx-2 my-2 my-sm-0"
-                                href={"/dashboard/" + state.user_id}
+                                href={"/dashboard/" + user_id}
                             >
                                 Back to Dashboard
                             </a>
@@ -187,7 +109,7 @@ function InstructorView(props) {
                             <div className="card-body justify-content-center">
                                 <div className="row justify-content-center text-center">
                                     <div className="col-lg-6">
-                                        {state.isEditing ? (
+                                        {isEditing ? (
                                             <>
                                                 <div className="form-floating">
                                                     <input
@@ -196,7 +118,9 @@ function InstructorView(props) {
                                                         type="text"
                                                         value={roomInfo}
                                                         onChange={
-                                                            handleRoomInfoChange
+                                                            (event) => {
+                                                                setRoomInfo(event.target.value);
+                                                            }
                                                         }
                                                     />
                                                     <label
@@ -225,10 +149,7 @@ function InstructorView(props) {
                                                 <button
                                                     className="btn btn-dark btn-sm mt-2 btn-modified"
                                                     onClick={() =>
-                                                        setState({
-                                                            ...state,
-                                                            isEditing: true,
-                                                        })
+                                                        setIsEditing(true)
                                                     }
                                                 >
                                                     Edit Location
@@ -269,7 +190,7 @@ function InstructorView(props) {
                             <div class="card-body">
                                 <InstructorTable
                                     headers={headers}
-                                    data={state.queueData}
+                                    data={queueData}
                                 />
                             </div>
                         </div>

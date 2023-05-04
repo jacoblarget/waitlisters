@@ -151,8 +151,7 @@ router.get('/getRoomInfo', async (req, res) => {
   try {
     const user_id = req.query.user_id;
     const course_id = req.query.course_id;
-    // let the students see instructor room info
-    // await checkPermissions(user_id, course_id, 'INSTRUCTOR');
+    // no checkPermissions so students can see
     const connection = await mysql.createConnection(config);
     const [results] = await connection.execute(
       `SELECT permission_location FROM Permissions
