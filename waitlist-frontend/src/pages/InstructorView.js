@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import InstructorTable from "./subpages/InstructorTable.js";
+import Queue from "./subpages/Queue.js";
 import "/app/src/App.css";
 import { useParams } from "react-router-dom";
 
@@ -36,7 +36,7 @@ function InstructorView(props) {
     const getCurrentlyHelpingStudent = useMemo(() => async () => {
       const request = {user_id: user_id, course_id: course_id};
       const response = await get("getCurrentlyHelpingStudent", request);
-      setCurrentlyHelpingStudent(response[0] === undefined ? "None" : response[0]["user_name"]);
+      setCurrentlyHelpingStudent(response[0] === undefined ? undefined : response[0]["user_name"]);
     }, [user_id, course_id]);
 
     const getQueueStatus = useMemo(() => async () => {
@@ -69,13 +69,13 @@ function InstructorView(props) {
     async function finishHelpingStudent() {
         const request = {user_id: user_id, course_id: course_id };
         const response = await post('finishHelpingStudent', request);
-        setCurrentlyHelpingStudent("None");
+        setCurrentlyHelpingStudent(undefined);
     }
     
     async function removeNoShowStudent() {
         const request = { user_id: user_id, course_id: course_id };
         const response = await post('removeNoShowStudent', request);
-        setCurrentlyHelpingStudent('None');
+        setCurrentlyHelpingStudent(undefined);
     }
 
     let tk = localStorage.getItem("token");
@@ -162,19 +162,21 @@ function InstructorView(props) {
                                     <div className="col-lg-6">
                                         <button
                                             className="btn btn-sm btn-dark mt-2 btn-modified"
+                                            hidden={!queueData.length || currentlyHelpingStudent}
                                             onClick={takeNextStudent}
                                         >
                                             Help Next Student
                                         </button>
                                         <button
                                             className="btn btn-sm btn-dark mt-2 btn-modified"
+                                            hidden={!currentlyHelpingStudent}
                                             onClick={finishHelpingStudent}
                                         >
-                                            Finish Helping{" "}
-                                            {currentlyHelpingStudent}
+                                            Finish Helping {" " + currentlyHelpingStudent}
                                         </button>
                                         <button
                                             className="btn btn-sm btn-dark mt-2 btn-modified"
+                                            hidden={!currentlyHelpingStudent}
                                             onClick={removeNoShowStudent}
                                         >
                                             Remove No Show from Queue
@@ -188,10 +190,10 @@ function InstructorView(props) {
                     <div class="col-lg-6 mb-2">
                         <div class="card">
                             <div class="card-body">
-                                <InstructorTable
-                                    headers={headers}
-                                    data={queueData}
-                                />
+                                { queueData.length ? <Queue headers={headers} data={queueData}/>
+                                            : <>No students? Check Piazza!</>
+                                }
+                                
                             </div>
                         </div>
                     </div>
@@ -200,4 +202,4 @@ function InstructorView(props) {
         );
     }
 }
-export default InstructorView; // adds component to the application
+export default InstructorView; // adds component to application

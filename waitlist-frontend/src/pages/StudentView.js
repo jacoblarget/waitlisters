@@ -1,5 +1,5 @@
 import "../App.css";
-import StudentWaitlist from "./subpages/StudentWaitlist.js";
+import Queue from "./subpages/Queue";
 import { useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
@@ -156,7 +156,6 @@ function StudentView({ useAuth }) {
     if (parseInt(state.user_id) !== parseInt(tk)) {
         return <>You are not allowed to view this page.</>;
     } else {
-        //Functional version of Render() --- Spits out what the page should look like. 
         return (
             <>
                 <section id="title bg-success">
@@ -234,7 +233,7 @@ function StudentView({ useAuth }) {
                                                 >
                                                     Time Needed:{" "}
                                                     <small className="text-muted">
-                                                        {state.queue_time}{" "}
+                                                        {state.queue_time + " "}
                                                         minutes
                                                     </small>
                                                 </h5>
@@ -363,10 +362,10 @@ function StudentView({ useAuth }) {
                     <div class="col-lg-6 mb-2">
                         <div class="card">
                             <div class="card-body">
-                                <StudentWaitlist
-                                    headers={headers}
-                                    data={state.queueData}
-                                ></StudentWaitlist>
+                                {state.queueData.length ? <Queue headers={headers} data={state.queueData}/>
+                                : <>You'll be the first!</>
+                                }
+                                
                             </div>
                         </div>
                     </div>
@@ -376,4 +375,4 @@ function StudentView({ useAuth }) {
     }
 }
 
-export default StudentView; // This allows for the use of the StudentView component to be used in other JS files, particularly in other pages or in App.js for launch. Still requires an import into corresponding JS file.
+export default StudentView; // adds component to application
