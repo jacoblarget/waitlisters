@@ -5,14 +5,13 @@ import React, { useEffect, useState, useMemo } from "react";
 
 function StudentView({ useAuth }) {
     const studentBaseURL = 'http://localhost:8080/student';
-    const instructorBaseURL = 'http://localhost:8080/instructor'
+    const instructorBaseURL = 'http://localhost:8080/instructor';
     const headers = ["Position","Name","Estimated Time","Query Description","Instructor"];
     const { user_id, course_id } = useParams();
     const [queueData, setQueueData] = useState([]);
     const [queue_time, setQueueTime] = useState("5");
     const [queue_topic_description, setQueueTopicDescription] = useState("");
-    const [is_editing_estimated_time, setIsEditingEstimatedTime] = useState(false);
-    const [is_editing_topic_description, setIsEditingTopicDescription] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [instructorLocation, setInstructorLocation] = useState("Your Instructor's Room");
     const [mode, setMode] = useState("ENTER"); // other options EXIT, SELECTED
 
@@ -23,13 +22,13 @@ function StudentView({ useAuth }) {
         return await response.json();
       }
   
-      const post = async (endpoint, request, baseURL) => {
-          const postOptions = { method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(request)};
-          const response = await fetch(`${baseURL}/${endpoint}`, postOptions);
-          if (!response.ok) throw new Error(`Error posting ${endpoint}: ${response.statusText}`);
-          return await response.json();
-      }
+    const post = async (endpoint, request, baseURL) => {
+        const postOptions = { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(request)};
+        const response = await fetch(`${baseURL}/${endpoint}`, postOptions);
+        if (!response.ok) throw new Error(`Error posting ${endpoint}: ${response.statusText}`);
+        return await response.json();
+    }
 
     const getQueueAndEntryStatus = async () => {
         const request = {user_id, course_id};
@@ -92,198 +91,59 @@ function StudentView({ useAuth }) {
     if (parseInt(user_id) !== parseInt(tk)) {
         return <>You are not allowed to view this page.</>;
     } else {
-        return (
-            <>
-                <section id="title bg-success">
-                    <nav class="navbar navbar-dark bg-dark justify-content-between">
-                        <a class="navbar-brand" href="/">
-                            FIFO
-                        </a>
-                        <div class="container-fluid col">
-                            <p class="navbar-brand mb-0 h1">Welcome to your Student View for Course {course_id}, @{user_id}</p>
-                        </div>
-                        <div className="col-lg-3 text-end">
-                            <a
-                                class="btn btn-outline-light btn-lg px-2 mx-2 my-2 my-sm-0"
-                                href={"/dashboard/" + user_id}
-                            >
-                                Back to Dashboard
-                            </a>
-                        </div>
-                    </nav>
-                </section>
-                <div class="row m-3">
-                    <div className="col-lg-6 mb-3 sticky-top">
-                        <div className="card justify-content-center text-center">
-                            <div className="card-body justify-content-center text-center">
-                                <div className="row justify-content-center text-center">
-                                    <div className="col-lg-6">
-                                        {is_editing_estimated_time ? (
-                                            <>
-                                                <div className="form-floating">
-                                                    <input
-                                                        className="form-control bottom-border w-150"
-                                                        type="text"
-                                                        id="changeTime"
-                                                        value={queue_time}
-                                                        onChange={(e) => setQueueTime(e.target.value)}
-                                                    />
-                                                    <label
-                                                        className="text-secondary disabled"
-                                                        htmlFor="changeTime"
-                                                    >
-                                                        Time Needed
-                                                    </label>
+        return(
+<>
+<section id="title" class="bg-success">
+  <nav class="navbar navbar-dark bg-dark justify-content-between">
+    <a class="navbar-brand" href="/">FIFO</a>
+    <div class="col">
+      <p class="navbar-brand mb-0 h1 text-center">Welcome to your Student View for Course {course_id}, @{user_id}</p>
+    </div>
+    <div class="col-lg-3 text-end">
+      <a class="btn btn-outline-light btn-lg px-2 mx-2 my-2 my-sm-0" href={"/dashboard/" + user_id}>Back to Dashboard</a>
+    </div>
+  </nav>
+</section>
 
-                                                    <button
-                                                        className="btn btn-primary btn-sm mt-1 mb-2 btn-modified"
-                                                        hidden={
-                                                            mode !==
-                                                            "ENTER"
-                                                        }
-                                                        onClick={() =>
-                                                            setIsEditingEstimatedTime(false)
-                                                        }
-                                                    >
-                                                        Save
-                                                    </button>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <h5
-                                                    className="text-center mt-2"
-                                                    hidden={
-                                                        mode !== "ENTER"
-                                                    }
-                                                >
-                                                    Time Needed:{" "}
-                                                    <small className="text-muted">
-                                                        {queue_time + " "}
-                                                        minutes
-                                                    </small>
-                                                </h5>
-                                                <button
-                                                    className="btn btn-dark btn-sm mt-1 mb-2 btn-modified"
-                                                    hidden={
-                                                        mode !== "ENTER"
-                                                    }
-                                                    onClick={() =>
-                                                        setIsEditingEstimatedTime(true)
-                                                    }
-                                                >
-                                                    Edit Time Needed
-                                                </button>
-                                            </>
-                                        )}
-                                        {is_editing_topic_description ? (
-                                            <>
-                                                <div className="form-floating">
-                                                    <input
-                                                        className="form-control bottom-border w-150 mt-2"
-                                                        type="text"
-                                                        id="changeDesc"
-                                                        maxLength="120"
-                                                        value={
-                                                            queue_topic_description
-                                                        }
-                                                        onChange={(e) =>
-                                                            setQueueTopicDescription(e.target.value)
-                                                        }
-                                                    />
-                                                    <label
-                                                        className="text-secondary disabled"
-                                                        for="changeTime"
-                                                    >
-                                                        Question
-                                                    </label>
-                                                    <button
-                                                        className="btn btn-primary btn-sm mt-1 mb-1 btn-modified"
-                                                        hidden={
-                                                            mode !==
-                                                            "ENTER"
-                                                        }
-                                                        onClick={() =>
-                                                            setIsEditingTopicDescription(false)
-                                                        }
-                                                    >
-                                                        Save
-                                                    </button>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <h5
-                                                    className="text-center mt-2"
-                                                    hidden={
-                                                        mode !== "ENTER"
-                                                    }
-                                                >
-                                                    Your Question:{" "}
-                                                    <small className="text-muted">
-                                                        {
-                                                            queue_topic_description
-                                                        }
-                                                    </small>
-                                                </h5>
-                                                <button
-                                                    className="btn btn-dark btn-sm mt-1 mb-2 btn-modified"
-                                                    hidden={
-                                                        mode !== "ENTER"
-                                                    }
-                                                    onClick={() =>
-                                                        setIsEditingTopicDescription(true)
-                                                    }
-                                                >
-                                                    Add Question Description
-                                                </button>
-                                            </>
-                                        )}
-                                        <div className="row justify-content-center text-center">
-                                            <div className="col-lg-6">
-                                                <button
-                                                    className="btn btn-dark btn-sm mt-2 btn-modified"
-                                                    id={"enter"}
-                                                    title={"Enter Waitlist"}
-                                                    onClick={enqueue}
-                                                    hidden={
-                                                        mode !== "ENTER"
-                                                    }
-                                                >
-                                                    {"Enter Waitlist"}
-                                                </button>
-                                                <button
-                                                    className="btn btn-dark btn-sm mt-2 btn-modified"
-                                                    id={"leave"}
-                                                    title={"Leave Waitlist"}
-                                                    onClick={exitQueue}
-                                                    hidden={
-                                                        mode !== "EXIT"
-                                                        // false
-                                                    }
-                                                >
-                                                    {"Leave Waitlist"}
-                                                </button>
-                                                { <p hidden={mode !== "SELECTED"}>You've been selected! Head to {instructorLocation}</p> }
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 mb-2">
-                        <div class="card">
-                            <div class="card-body">
-                                {queueData.length ? <Queue headers={headers} data={queueData}/>
-                                : <>You'll be the first!</>
-                                }        
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </>
-        );
+<div class="row m-3">
+  <div class="col-lg-6 mb-3 sticky-top">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-center align-items-center mb-3">
+          <div class="w-50">
+            <div class="form-floating mb-3">
+              <input class="form-control bottom-border" type="text" id="changeTime" hidden={mode !== 'ENTER'} value={queue_time} onChange={(e) => setQueueTime(e.target.value)} />
+              <label class="text-secondary disabled" for="changeTime">Time Needed</label>
+            </div>
+            {/* <h5 class="text-center mt-2" hidden={mode !== "ENTER"}>Time Needed: <small class="text-muted">{queue_time} minutes</small></h5> */}
+            <div class="form-floating mb-3">
+              <input class="form-control bottom-border" type="text" id="changeDesc" maxLength="120" value={queue_topic_description} onChange={(e) => setQueueTopicDescription(e.target.value)} />
+              <label class="text-secondary disabled" for="changeTime">Question</label>
+            </div>
+            {/* <h5 class="text-center mt-2" hidden={mode !== "ENTER"}>Your Question: <small class="text-muted">{queue_topic_description}</small></h5> */}
+            {queue_time + " " + queue_topic_description}
+            <div class="d-flex justify-content-center align-items-center">
+              <div class="w-75">
+                <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" id={"enter"} title={"Enter Waitlist"} onClick={enqueue} hidden={mode !== "ENTER"}>Enter Waitlist</button>
+                <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" id={"leave"} title={"Leave Waitlist"} onClick={exitQueue} hidden={mode !== "EXIT"}>Leave Waitlist</button>
+                <p class="text-center mt-2" hidden={mode !== "SELECTED"}>You've been selected! Head to {instructorLocation}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 mb-2">
+    <div class="card">
+      <div class="card-body">
+        {queueData.length ? <Queue headers={headers} data = {queueData}/> : <>You'll be the first!</>}
+    </div>
+ </div>
+</div>
+</div>
+</>
+);
     }
 }
 
