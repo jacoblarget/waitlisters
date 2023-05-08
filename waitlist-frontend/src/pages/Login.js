@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import "../App.css";
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
 function storeToken(userToken) {
     localStorage.setItem("token", JSON.stringify(userToken));

@@ -6,6 +6,10 @@ It is available for use at TODO.
 
 Technical details are listed below for those interested in adapting/analyzing the code structure.
 
+## Crediting
+
+This code relies on the work of the larger open-source development community. We want to especially thank the developers of Docker, GitHub, OpenAI, Bootstrap, React, NodeJS, and MySQL for their efforts.
+
 ## UX Details
 
 See screenshots (TODO)

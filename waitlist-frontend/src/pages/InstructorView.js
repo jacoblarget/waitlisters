@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Queue from "./subpages/Queue.js";
 import "/app/src/App.css";
 import { useParams } from "react-router-dom";
 
-function InstructorView(props) {
+function InstructorView() {
 
   // component-wide variables
   const instructorBaseURL = 'http://localhost:8080/instructor';

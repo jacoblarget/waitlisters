@@ -1,8 +1,7 @@
 import "/app/src/App.css";
-import React, { useState, useEffect, useLayoutEffect } from "react";
-import { Link, Navigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import Homepage from "./Homepage";
 
 /**
  * This function returns the HTML output for the dashboard page
@@ -11,29 +10,15 @@ import Homepage from "./Homepage";
  */
 function Dashboard({ setToken, useAuth }) {
     const { user_id } = useParams();
-    const [state, setState] = useState({
-        user_id: user_id,
-    });
-
-    // state variables for instructor and student course lists.
     const [instructor_course_list, setInstructorCourseList] = useState([]);
     const [student_course_list, setStudentCourseList] = useState([]);
-
-    // state variables for the text box entry for create course
     const [course_name, setCourseName] = useState("");
     const [course_description, setCourseDescription] = useState("");
     const [editing_create_course, setEditingCreateCourse] = useState(false);
-
-    // state variables for the text box entry for student join course.
     const [course_student_join_code, setStudentJoinCode] = useState("");
-    const [editing_student_join_codee, setEditingStudentJoinCode] =
-        useState(false);
-
-    // state variables for the text box entry for instructor join course.
+    const [editing_student_join_codee, setEditingStudentJoinCode] = useState(false);
     const [course_instructor_join_code, setInstructorJoinCode] = useState("");
     const [editing_instructor_join_code, setEditingInstructorJoinCode] = useState(false);
-
-    // state variables for the resulting join codes after creating a course.
     const [display_join_codes_after_create, setDisplayJoinCodesAfterCreate] = useState(false);
     const [output_instructor_join_code, setOutputInstructorJoinCode] = useState("");
     const [output_student_join_code, setOutputStudentJoinCode] = useState("");
@@ -44,7 +29,6 @@ function Dashboard({ setToken, useAuth }) {
         headers: { "Content-Type": "application/json" },
     };
 
-    // updates state variables related to the text boxes for creating courses.
     const handleCourseNameChange = (event) => {
         setCourseName(event.target.value);
     };
@@ -52,24 +36,17 @@ function Dashboard({ setToken, useAuth }) {
         setCourseDescription(event.target.value);
     };
     const handleEditingCreateCourse = (event) => {
-        // clear out the join codes if needed
         if (editing_create_course){
             setDisplayJoinCodesAfterCreate(false);
         }
-        
-        // reverse value.
         setEditingCreateCourse(!editing_create_course);
     };
-
-    // updates state variables related to the text boxes for adding courses as student
     const handleStudentJoinCodeChange = (event) => {
         setStudentJoinCode(event.target.value);
     };
     const handleEditingStudentJoinCode = (event) => {
         setEditingStudentJoinCode(!editing_student_join_codee);
     };
-
-    // updates state variables related to the text boxes for adding courses as instructor
     const handleInstructorJoinCodeChange = (event) => {
         setInstructorJoinCode(event.target.value);
     };
@@ -93,24 +70,13 @@ function Dashboard({ setToken, useAuth }) {
      */
     async function handleSubmitCreateCourse(event) {
         event.preventDefault();
-
-        // handle form submission here
         let new_course_id = await createCourse();
-
-        // clear out text entry boxes
         setCourseName("");
         setCourseDescription("");
-
-        // update the instructor courses list.
         await getCoursesEnrolledAsInstructor();
-
         if (new_course_id){
             let success = await getJoinCodes(new_course_id);
-            
-            if (success){
-                setDisplayJoinCodesAfterCreate(true);
-            }
-            
+            if (success) setDisplayJoinCodesAfterCreate(true);
         }
     }
 
@@ -120,14 +86,8 @@ function Dashboard({ setToken, useAuth }) {
      */
     async function handleSubmitStudentJoinCourse(event) {
         event.preventDefault();
-
-        // handle form submission here
         await studentJoinCourse();
-
-        // clear out text entry boxes
         setStudentJoinCode("");
-
-        // update the student courses list.
         await getCoursesEnrolledAsStudent();
     }
 
@@ -137,29 +97,23 @@ function Dashboard({ setToken, useAuth }) {
      */
     async function handleSubmitInstructorJoinCourse(event) {
         event.preventDefault();
-
-        // handle form submission here
         await instructorJoinCourse();
-
-        // clear out text entry boxes
         setInstructorJoinCode("");
-
-        // update the instructor courses list.
         await getCoursesEnrolledAsInstructor();
     }
 
     // The functions called inside this run at startup
-    useLayoutEffect(() => {
+    useEffect(() => {
         getCoursesEnrolledAsInstructor();
         getCoursesEnrolledAsStudent();
-    }, [user_id]);
+    }, [user_id, getCoursesEnrolledAsInstructor, getCoursesEnrolledAsStudent]);
 
     /**
      * Loads the state variable with the courses that the user is currently enrolled in as an instructor.
      */
     async function getCoursesEnrolledAsInstructor() {
         const dataIn = {};
-        dataIn["user_id"] = state.user_id;
+        dataIn["user_id"] = user_id;
         const parameters = new URLSearchParams(dataIn).toString();
         const response = await fetch(
             `http://localhost:8080/dashboard/GetCoursesEnrolledAsInstructor?${parameters}`
@@ -177,7 +131,7 @@ function Dashboard({ setToken, useAuth }) {
      */
     async function getCoursesEnrolledAsStudent() {
         const dataIn = {};
-        dataIn["user_id"] = state.user_id;
+        dataIn["user_id"] = user_id;
         const parameters = new URLSearchParams(dataIn).toString();
         const response = await fetch(
             `http://localhost:8080/dashboard/GetCoursesEnrolledAsStudent?${parameters}`
@@ -192,10 +146,7 @@ function Dashboard({ setToken, useAuth }) {
         const dataOut = await response.json();
         setStudentCourseList(dataOut);
     }
-
-    /**
-     * create and execute a post request to the createCourse endpoint.
-     */
+    
     async function createCourse() {
         const dataIn = {
             user_id: user_id,
@@ -255,7 +206,7 @@ function Dashboard({ setToken, useAuth }) {
      */
     async function getJoinCodes(new_course_id) {
         const dataIn = {};
-        dataIn["user_id"] = state.user_id;
+        dataIn["user_id"] = user_id;
         dataIn["course_id"] = new_course_id;
         const parameters = new URLSearchParams(dataIn).toString();
         const response = await fetch(
@@ -276,9 +227,7 @@ function Dashboard({ setToken, useAuth }) {
     }
 
     let tk = localStorage.getItem("token");
-    if (parseInt(state.user_id) !== parseInt(tk) && useAuth) {
-        return <>You are not allowed to view this page.</>;
-    } else {
+    if (parseInt(user_id) !== parseInt(tk) && useAuth) return <>You are not allowed to view this page.</>;
         return (
             /* Javascript tab toggling inspired by https://www.tutorialrepublic.com/codelab.php?topic=bootstrap&file=card-with-tabs-navigation */
             <>
@@ -508,7 +457,7 @@ function Dashboard({ setToken, useAuth }) {
                                                                     }
                                                                 >
                                                                     <Link
-                                                                        to={`/instructorview/${state.user_id}/${instructor_course_list_i.course_id}`}
+                                                                        to={`/instructorview/${user_id}/${instructor_course_list_i.course_id}`}
                                                                     >
                                                                         <button className="btn btn-dark">
                                                                             {
@@ -606,7 +555,7 @@ function Dashboard({ setToken, useAuth }) {
                                                                     }
                                                                 >
                                                                     <Link
-                                                                        to={`/studentview/${state.user_id}/${student_course_list_i.course_id}`}
+                                                                        to={`/studentview/${user_id}/${student_course_list_i.course_id}`}
                                                                     >
                                                                         <button className="btn btn-dark">
                                                                             {
@@ -627,9 +576,6 @@ function Dashboard({ setToken, useAuth }) {
                         </div>
                     </div>
                 </div>
-            </>
-        );
-    }
+            </>);
 }
-
 export default Dashboard; // Makes component available to rest of application

@@ -66,7 +66,7 @@ function Register() {
         setRegisterStatus("");
 
         //Check if email is a @wisc.edu email
-        if (!(new RegExp('@wisc.edu' + '$')).test(email)) {
+        if (!(new RegExp('@wisc.edu$')).test(email)) {
             setRegisterStatus("Invalid Wisc Email");
             return;
         }
