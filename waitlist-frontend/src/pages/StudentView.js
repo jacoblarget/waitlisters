@@ -1,9 +1,9 @@
 import "../App.css";
 import Queue from "./subpages/Queue";
 import { useParams } from "react-router-dom";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState} from "react";
 
-function StudentView({ useAuth }) {
+function StudentView() {
   // globals
   const studentBaseURL = 'http://localhost:8080/student';
   const instructorBaseURL = 'http://localhost:8080/instructor';
@@ -32,43 +32,41 @@ function StudentView({ useAuth }) {
   
   // automatic rendering
   useEffect(() => {
-    const interval = setInterval(getUpdates, 500); // Refresh speed in milliseconds
-    return () => clearInterval(interval); // Clear the interval on unmount
+    const interval = setInterval(async () => {
+      const request = {user_id, course_id}
+      const [queueStatus, entryStatus] = await Promise.all([
+        get("getQueueStatus", request, studentBaseURL),
+        get("getEntryStatus", request, studentBaseURL)
+      ]);
+      setQueueData(queueStatus);
+      if (!entryStatus[0]) {
+        setMode("ENTER");
+        return;
+      }
+      const userPresent = entryStatus[0].user_id !== null;
+      const instructorSelected = entryStatus[0].instructor_id !== null;
+      if (userPresent && instructorSelected) {
+        const instructor_id = entryStatus[0].instructor_id;
+        const request = {user_id: instructor_id, course_id: course_id};
+        const response = await get("getRoomInfo", request, instructorBaseURL);
+        setInstructorLocation(response[0]["permission_location"]);
+        setMode("SELECTED");
+      } else {
+        setMode("EXIT");
+      }
+    }, 500); // in ms, refresh speed
+    return () => clearInterval(interval); // clean unmount
   }, [user_id, course_id]);
-  
-  const getUpdates = async () => {
-    const request = {user_id, course_id}
-    const [queueStatus, entryStatus] = await Promise.all([
-      get("getQueueStatus", request, studentBaseURL),
-      get("getEntryStatus", request, studentBaseURL)
-    ]);
-    setQueueData(queueStatus);
-    if (!entryStatus[0]) {
-      setMode("ENTER");
-      return;
-    }
-    const userPresent = entryStatus[0].user_id !== null;
-    const instructorSelected = entryStatus[0].instructor_id !== null;
-    if (userPresent && instructorSelected) {
-      const instructor_id = entryStatus[0].instructor_id;
-      const request = {user_id: instructor_id, course_id: course_id};
-      const response = await get("getRoomInfo", request, instructorBaseURL);
-      setInstructorLocation(response[0]["permission_location"]);
-      setMode("SELECTED");
-    } else {
-      setMode("EXIT");
-    }
-  };
 
   async function enqueue() {
     const request = {user_id: user_id, course_id: course_id,
       queue_estimated_time: queue_time || 5, // set default
       queue_topic_description: queue_topic_description};
-    const response = await post('enqueue', request, studentBaseURL);
+    await post('enqueue', request, studentBaseURL);
   }
   async function exitQueue(){
-      const request = {user_id, course_id};
-      const response = await post('exitQueue', request, studentBaseURL);
+    const request = {user_id, course_id};
+    await post('exitQueue', request, studentBaseURL);
   }
 
   let tk = localStorage.getItem("token");
