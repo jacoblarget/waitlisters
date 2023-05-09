@@ -11,7 +11,7 @@ function Dashboard({ setToken, useAuth }) {
     const [course_name, setCourseName] = useState("");
     const [course_description, setCourseDescription] = useState("");
     const [join_code, setJoinCode] = useState("");
-    const headers = ["Course Name","Permission Type", "Student Join Code", "Instructor Join Code"]
+    const headers = ["Course Name", "Permission Type", "Join (Code)"];
 
     async function handleSignOut(event) {
       event.preventDefault();
@@ -22,7 +22,8 @@ function Dashboard({ setToken, useAuth }) {
     async function createCourse() {
       const request = { user_id, course_name, course_description };
       await post('createCourse', request, dashboardBaseURL);
-      setJoinCode("");
+      setCourseName("");
+      setCourseDescription("");
     }
 
     async function joinCourse(){
@@ -60,26 +61,36 @@ function Dashboard({ setToken, useAuth }) {
     <div class="col-lg-6 mb-2">
       <div class="card">
         <div class="card-body">
-        <table className="table table-success table-hover table-bordered table-responsive-md">
-    <thead>
-      <tr className="text-center">
-        {headers.map((header, index) => (
-          <th scope="col" key={index}>
-            {header}
-          </th>
-        ))}
+<table className="table table-success table-hover table-bordered table-responsive-md">
+  <thead>
+    <tr className="text-center">
+      {headers.map((header, index) => (
+        <th scope="col" key={index}>
+          {header}
+        </th>
+      ))}
+    </tr>
+  </thead>
+  <tbody>
+    {course_list.map(({ course_name, permission_type, course_id, course_student_join_code, course_instructor_join_code}, index) => (
+      <tr className="text-center" key={index}>
+        <td>{course_name}</td>
+        <td>{permission_type}</td>
+        <td>
+          {permission_type === "STUDENT" ? (
+            <Link to={`/studentview/${user_id}/${course_id}`}>
+              <button className="btn btn-dark">{course_student_join_code}</button>
+            </Link>
+          ) : (
+            <Link to={`/instructorview/${user_id}/${course_id}`}>
+              <button className="btn btn-dark">{course_instructor_join_code + " " + course_student_join_code}</button>
+            </Link>
+          )}
+        </td>
       </tr>
-    </thead>
-    <tbody>
-        {course_list.map(({ queue_id, ...row }, index) => (
-          <tr className="text-center" key={index}>
-            {Object.values(row).map((value, index) => (
-              <td key={index}>{value}</td>
-            ))}
-          </tr>
-        ))}
-    </tbody>
-  </table>
+    ))}
+  </tbody>
+</table>
       </div>
       <div class="row m-3">
     <div class="col-lg-6 mb-3 sticky-top">
@@ -87,16 +98,17 @@ function Dashboard({ setToken, useAuth }) {
         <div class="card-body">
           <div class="d-flex justify-content-center align-items-center mb-3">
             <div class="w-50">
-              <div class="mb-3">
-              <input className="form-control bottom-border" placeholder={"Course Name"} type="text" value={course_name} onChange={(e) => setCourseName(e.target.value)} />
-              <input className="form-control bottom-border" placeholder={"Course Description"} type="text" value={course_description} onChange={(e) => setCourseDescription(e.target.value)} /> 
-              <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" onClick={createCourse}>createCourse</button>
-              </div>
-              <div class="d-flex justify-content-center align-items-center">
+              
                 <div class="w-75">
                 <input className="form-control bottom-border" placeholder={"Join Code"} type="text" value={join_code} onChange={(e) => setJoinCode(e.target.value)} />
                 <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" onClick={joinCourse}>joinCourse</button>
                 </div>
+                <div class="d-flex justify-content-center align-items-center">
+                <div class="mb-3">
+              <input className="form-control bottom-border" placeholder={"Course Name"} type="text" value={course_name} onChange={(e) => setCourseName(e.target.value)} />
+              <input className="form-control bottom-border" placeholder={"Course Description"} type="text" value={course_description} onChange={(e) => setCourseDescription(e.target.value)} /> 
+              <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" onClick={createCourse}>createCourse</button>
+              </div>
               </div>
             </div>
           </div>

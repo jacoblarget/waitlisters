@@ -6,7 +6,7 @@ router.get("/getEnrolledCourses", async (req, res) => {
   try {
     const user_id = req.query.user_id;
     const [results] = await connect(
-      `SELECT DISTINCT C.course_name, P.permission_type,
+      `SELECT DISTINCT C.course_id, C.course_name, P.permission_type,
       C.course_student_join_code, C.course_instructor_join_code
         FROM Permissions P JOIN Courses C
         ON P.course_id = C.course_id
