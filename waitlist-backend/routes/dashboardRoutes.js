@@ -1,23 +1,19 @@
-//Imports
 const express = require("express");
 const router = express.Router();
 const mysql = require("mysql2/promise");
 const {config, checkPermissions} = require("../config");
 
-/**
- * Returns a list of all courses the user is enrolled in as an instructor.
- */
-router.get("/GetCoursesEnrolledAsInstructor", async (req, res) => {
+router.get("/getEnrolledCourses", async (req, res) => {
   try {
     const user_id = req.query.user_id;
     const connection = await mysql.createConnection(config);
     const [results] = await connection.execute(
-      `SELECT DISTINCT P.course_id, C.course_name 
+      `SELECT DISTINCT C.course_name, P.permission_type,
+      C.course_student_join_code, C.course_instructor_join_code
             FROM Permissions P
             JOIN Courses C
             ON P.course_id = C.course_id
-            WHERE P.user_id = ?
-            AND P.permission_type = 'INSTRUCTOR';`,
+            WHERE P.user_id = ?;`,
       [user_id]
     );
     await connection.end();
@@ -27,36 +23,56 @@ router.get("/GetCoursesEnrolledAsInstructor", async (req, res) => {
   }
 });
 
-/**
- * Returns a list of all courses the user is enrolled in as a student.
- */
-router.get("/GetCoursesEnrolledAsStudent", async (req, res) => {
+router.post('/joinCourse', async (req, res) => {
   try {
-    const user_id = req.query.user_id;
+    console.log("POST/joinCourse");
+    const user_id = req.body.user_id;
+    const join_code = req.body.join_code;
+    if (!join_code) throw new Error('Invalid Join Code Input.');
+
     const connection = await mysql.createConnection(config);
-    const [results] = await connection.execute(
-      `SELECT DISTINCT P.course_id, C.course_name 
-            FROM Permissions P
-            JOIN Courses C
-            ON P.course_id = C.course_id
-            WHERE P.user_id = ?
-            AND P.permission_type = 'STUDENT';`,
-      [user_id]
+		const [results] = await connection.execute(
+      `SELECT course_id, course_name, course_description,
+      course_student_join_code AS course_join_code, 'STUDENT' AS permission_type
+      FROM Courses
+      WHERE course_student_join_code=?
+      UNION
+      SELECT course_id, course_name, course_description,
+      course_instructor_join_code AS course_join_code, 'INSTRUCTOR' AS permission_type
+      FROM Courses
+      WHERE course_instructor_join_code=?;`
+      ,[join_code, join_code]
+		);
+		await connection.end();
+    
+    if (!results.length) throw new Error(`Invalid Join Code Database.`);
+
+    console.log(results[0]);
+    const course_id = results[0]["course_id"];
+    const permission_type = results[0]["permission_type"];
+    console.log(permission_type);
+      
+    // Add the appropriate entry to the permissions table to add this user as a student.
+    const connection3 = await mysql.createConnection(config);
+    const [results3] = await connection3.execute(
+      `INSERT INTO Permissions (course_id, user_id, permission_type) VALUES (?, ?, ?);`,
+      [course_id, user_id, permission_type]
     );
-    await connection.end();
-    res.status(200).send(results);
+    await connection3.end();
+    if (results3.affectedRows === 0) throw new Error(
+      `Error adding new permissions`
+    );
+    
+    res.status(200).send({ message: 'Course has been added.' });
   } catch (err) {
-    res.status(500).send(err.message);
+    console.log(err.message);
+    res.status(401).send(err.message);
   }
 });
 
-/**
- * This API endpoint allows a user to create a new course and be added as an instructor.
- */
 router.post('/createCourse', async (req, res) => {
   try {
-    console.log("Made it here create course.");
-    // recieve parameters from request body.
+    console.log("POST/createCourse");
     const user_id = req.body.user_id;
     const course_name = req.body.course_name;
     const course_description = req.body.course_description;
@@ -103,87 +119,7 @@ router.post('/createCourse', async (req, res) => {
 });
 
 /**
- * This API endpoint allows a user to join an existing course as a student.
- */
-router.post('/joinExistingCourseAsStudent', async (req, res) => {
-  try {
-    console.log("Made it here student join course.");
-    // recieve parameters from request body.
-    const user_id = req.body.user_id;
-    const course_student_join_code = req.body.course_student_join_code;
-
-    // Retrieve the course_id from the join code.
-    const connection = await mysql.createConnection(config);
-		const [results] = await connection.execute(
-			`select * from Courses where course_student_join_code = ?;`,
-			[course_student_join_code]
-		);
-		await connection.end();
-		if (results.length === 0) throw new Error(`Not a valid student join code.`);
-
-    const course_id = results[0]["course_id"];
-    console.log(course_id);
-      
-    // Add the appropriate entry to the permissions table to add this user as a student.
-    const connection3 = await mysql.createConnection(config);
-    const [results3] = await connection3.execute(
-      `INSERT INTO Permissions (course_id, user_id, permission_type) VALUES (?, ?, "STUDENT");`,
-      [course_id, user_id]
-    );
-    await connection3.end();
-    if (results3.affectedRows === 0) throw new Error(
-      `Error adding new permissions`
-    );
-    
-    res.status(200).send({ message: 'Course has been added.' });
-  } catch (err) {
-    console.log(err.message);
-    res.status(401).send(err.message);
-  }
-});
-
-/**
- * This API endpoint allows a user to join an existing course as an instructor.
- */
-router.post('/joinExistingCourseAsInstructor', async (req, res) => {
-  try {
-    console.log("Made it here instructor join course.");
-    // recieve parameters from request body.
-    const user_id = req.body.user_id;
-    const course_instructor_join_code = req.body.course_instructor_join_code;
-
-    // Retrieve the course_id from the join code.
-    const connection = await mysql.createConnection(config);
-		const [results] = await connection.execute(
-			`select * from Courses where course_instructor_join_code = ?;`,
-			[course_instructor_join_code]
-		);
-		await connection.end();
-		if (results.length === 0) throw new Error(`Not a valid instructor join code.`);
-
-    const course_id = results[0]["course_id"];
-    console.log(course_id);
-      
-    // Add the appropriate entry to the permissions table to add this user as a student.
-    const connection3 = await mysql.createConnection(config);
-    const [results3] = await connection3.execute(
-      `INSERT INTO Permissions (course_id, user_id, permission_type) VALUES (?, ?, "INSTRUCTOR");`,
-      [course_id, user_id]
-    );
-    await connection3.end();
-    if (results3.affectedRows === 0) throw new Error(
-      `Error adding new permissions`
-    );
-    
-    res.status(200).send({ message: 'Course has been added.' });
-  } catch (err) {
-    console.log(err.message);
-    res.status(401).send(err.message);
-  }
-});
-
-/**
- * Returns a sudo-random code.
+ * Returns a pseudorandom code.
  * @param {*} N The length of the code
  * @returns the N char Alpha code
  */
@@ -199,9 +135,6 @@ function generateNcharAlphaCode(N){
   return result;
 }
 
-/**
- * this function grabs the join codes for a given course_id from the database and returns them.
- */
 router.get("/GetCourseJoinCodes", async (req, res) => {
   try {
     const user_id = req.query.user_id;

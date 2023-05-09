@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Queue from "./subpages/Queue.js";
 import "/app/src/App.css";
 import { useParams } from "react-router-dom";
+import { get, post } from "../api";
+
 
 function InstructorView() {
 
@@ -13,21 +15,6 @@ function InstructorView() {
   const [isEditing, setIsEditing] = useState("");
   const [roomInfo, setRoomInfo] = useState("");
   const [currentlyHelpingStudent, setCurrentlyHelpingStudent] = useState("");
-
-  // generic API functions
-  const get = async (endpoint, request, baseURL) => {
-    const parameters = new URLSearchParams(request).toString();
-    const response = await fetch(`${baseURL}/${endpoint}?${parameters}`);
-    if (!response.ok) throw new Error(`Error getting ${endpoint}: ${response.statusText}`);
-    return await response.json();
-  }
-  const post = async (endpoint, request, baseURL) => {
-    const postOptions = { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request)};
-    const response = await fetch(`${baseURL}/${endpoint}`, postOptions);
-    if (!response.ok) throw new Error(`Error posting ${endpoint}: ${response.statusText}`);
-    return await response.json();
-  }
 
   // automatic rendering
   useEffect(() => {

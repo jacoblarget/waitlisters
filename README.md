@@ -10,6 +10,11 @@ Technical details are listed below for those interested in adapting/analyzing th
 
 This code relies on the work of the larger open-source development community. We want to especially thank the developers of Docker, GitHub, OpenAI, Bootstrap, React, NodeJS, and MySQL for their efforts.
 
+### Sources
+
+* https://www.tutorialrepublic.com/codelab.php?topic=bootstrap&file=card-with-tabs-navigation
+
+
 ## UX Details
 
 See screenshots (TODO)

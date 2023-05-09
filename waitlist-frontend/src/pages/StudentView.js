@@ -2,6 +2,7 @@ import "../App.css";
 import Queue from "./subpages/Queue";
 import { useParams } from "react-router-dom";
 import React, { useEffect, useState} from "react";
+import { get, post } from "../api";
 
 function StudentView() {
   // globals
@@ -15,21 +16,6 @@ function StudentView() {
   const [instructorLocation, setInstructorLocation] = useState("");
   const [mode, setMode] = useState("ENTER");
 
-  // API generics
-  const get = async (endpoint, request, baseURL) => {
-    const parameters = new URLSearchParams(request).toString();
-    const response = await fetch(`${baseURL}/${endpoint}?${parameters}`);
-    if (!response.ok) throw new Error(`Error getting ${endpoint}: ${response.statusText}`);
-    return await response.json();
-  }
-  const post = async (endpoint, request, baseURL) => {
-    const postOptions = { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request)};
-    const response = await fetch(`${baseURL}/${endpoint}`, postOptions);
-    if (!response.ok) throw new Error(`Error posting ${endpoint}: ${response.statusText}`);
-    return await response.json();
-  }
-  
   // automatic rendering
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -117,5 +103,4 @@ function StudentView() {
   </div>
   </>);
 }
-
 export default StudentView; // adds component to application

@@ -10,8 +10,7 @@ CREATE TABLE Users (
  user_id INT PRIMARY KEY AUTO_INCREMENT,
  user_name VARCHAR(255),
  user_email VARCHAR(255),
- user_password VARCHAR(255),
- user_location VARCHAR(255)
+ user_password VARCHAR(255)
 );
 
 CREATE TABLE Queues (
@@ -33,19 +32,18 @@ CREATE TABLE Permissions (
  permission_location VARCHAR(255)
 );
 
--- initialize dummy values (test case driven)
-INSERT INTO Users (user_name, user_email, user_password, user_location) VALUES
-  -- this should make authentication better
-  ("Kanishk Saxena", "ksaxena@wisc.edu", "ksaxena", "Location1"),
-  ("Mayank Nayak", "mnayak@wisc.edu", "mnayak", "Location2"),
-  ("Eric Dubberstein", "edubberstein@wisc.edu", "edubberstein", "Location3"),
-  ("Connor Flint", "cflint@wisc.edu", "cflint", "Location4"),
-  ("Michael Brudos", "mbrudos@wisc.edu", "mbrudos", "Location5"),
-  ("Jacob Larget", "jlarget@wisc.edu", "jlarget", "Location6"),
-  ("User7", "user7@email.com", "password7", "Location7"),
-  ("User8", "user8@email.com", "password8", "Location8"),
-  ("User9", "user9@email.com", "password9", "Location9"),
-  ("User10", "user10@email.com", "password10", "Location10");
+-- test case data
+INSERT INTO Users (user_name, user_email, user_password) VALUES
+  ("Kanishk Saxena", "ksaxena@wisc.edu", "ksaxena"),
+  ("Mayank Nayak", "mnayak@wisc.edu", "mnayak"),
+  ("Eric Dubberstein", "edubberstein@wisc.edu", "edubberstein"),
+  ("Connor Flint", "cflint@wisc.edu", "cflint"),
+  ("Michael Brudos", "mbrudos@wisc.edu", "mbrudos"),
+  ("Jacob Larget", "jlarget@wisc.edu", "jlarget"),
+  ("User7", "user7@email.com", "password7"),
+  ("User8", "user8@email.com", "password8"),
+  ("User9", "user9@email.com", "password9"),
+  ("User10", "user10@email.com", "password10");
 
 INSERT INTO Courses (course_name, course_description, course_student_join_code, course_instructor_join_code) VALUES 
     ('Course 1', 'Description for Course 1', 'S1', 'I1'),

@@ -16,7 +16,6 @@ function Login({ setToken }) {
 
     const handleUsernameChange = (event) => {
         setUsername(event.target.value);
-        console.log(event.target.value);
     };
 
     const handlePasswordChange = (event) => {
@@ -30,7 +29,6 @@ function Login({ setToken }) {
      */
     async function handleSubmit(event) {
         event.preventDefault();
-        console.log(`Username: ${username}, Password: ${password}`);
         const dataIn = {};
         dataIn["username"] = username;
         dataIn["password"] = password;

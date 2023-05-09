@@ -4,7 +4,7 @@ var router = express.Router();
 var mysql = require('mysql2/promise'); 
 const {config, checkPermissions} = require('../config');
 
-//This route handles POST Request at /enqueue which allows a student to add themselves to the waitlist.
+// Allows a student to add themselves to the waitlist.
 router.post('/enqueue', async (req, res) => {
     try {
       const user_id = req.body.user_id;
