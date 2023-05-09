@@ -2,11 +2,6 @@ import React, { useState } from "react";
 import "/app/src/App.css";
 import { Navigate, Link} from "react-router-dom";
 
-
-/**
- * This function creates the frontend user account register page.
- * @returns Nothing
- */
 function Register() {
     // These are the current state of the webpage, which are the values of the textbox entries.
     const [firstname, setFirstName] = useState("");
@@ -79,7 +74,7 @@ function Register() {
 
         // Send the request to add account to the database
         const response = await fetch(
-            `http://localhost:8080/account/accountCreateAccount`,
+            `http://localhost:8080/account/createAccount`,
             postOptions
         );
 

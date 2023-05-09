@@ -1,16 +1,14 @@
 //Imports
 const express = require('express');
 const router = express.Router();
-const mysql = require('mysql2/promise');
-const {config, checkPermissions} = require('../config');
+const {connect, checkPermissions} = require('../config');
 
 router.get('/getQueueStatus', async (req, res) => {
   try {
     const user_id = req.query.user_id;
     const course_id = req.query.course_id;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
-    const connection = await mysql.createConnection(config);
-    const [results] = await connection.execute(
+    const [results] = await connect(
       `SELECT Q.queue_id, U.user_name,
       Q.queue_estimated_time,
       Q.queue_topic_description,
@@ -23,7 +21,6 @@ router.get('/getQueueStatus', async (req, res) => {
       ORDER BY Q.queue_timestamp;`,
       [course_id]
     );
-    await connection.end();
     res.status(200).send(results);
   } catch (err) {
     res.status(500).send(err.message);
@@ -49,34 +46,28 @@ router.post('/takeNextStudent', async (req, res) => {
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
 
     // Check if this instructor is already helping a student. If they are, return an error message.
-    const connection = await mysql.createConnection(config);
-		const [results] = await connection.execute(
+		const [results] = await connect(
 			`SELECT * FROM Queues WHERE course_id = ? AND queue_request_status = "IN_PROGRESS" AND queue_instructor_user_id = ?;`,
 			[course_id, user_id]
 		);
-		await connection.end();
 		if (results.length > 0) throw new Error(`This instructor is already helping a different student.`);
 
     // Execute the UPDATE query to set the next person as helping for this instructor.
-    const connection2 = await mysql.createConnection(config);
-    const [results2] = await connection2.execute(
+    const [results2] = await connect(
       `UPDATE Queues 
       SET queue_request_status = "IN_PROGRESS", queue_instructor_user_id = ?
       WHERE course_id = ? AND queue_request_status = "WAITING" ORDER BY queue_timestamp ASC LIMIT 1;`,
       [user_id, course_id]
     );
-    await connection2.end();
     if (results2.affectedRows === 0) throw new Error(
       `No waiting student for Instructor ${user_id} in Course ${course_id}`
     );
-    const connection3 = await mysql.createConnection(config);
-    const [results3] = await connection3.execute(
+    const [results3] = await connect(
             `SELECT user_id FROM Queues
             WHERE course_id = ? AND queue_request_status = "IN_PROGRESS" AND queue_instructor_user_id = ?
             ORDER BY queue_timestamp ASC LIMIT 1;`,
             [course_id, user_id]
         );
-    await connection.end();
     res.status(200).send({ results3, message: 'Student removed from the queue.' });
   } catch (err) {
     console.log(err.message);
@@ -89,14 +80,12 @@ router.post('/finishHelpingStudent', async (req, res) => {
     const user_id = req.body.user_id;
     const course_id = req.body.course_id;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
-    const connection = await mysql.createConnection(config);
-    const [results] = await connection.execute(
+    const [results] = await connect(
       `UPDATE Queues SET queue_request_status = 'DONE'
        WHERE queue_request_status = 'IN_PROGRESS'
        AND queue_instructor_user_id = ?`,
       [user_id]
     );
-    await connection.end();
     if (results.affectedRows === 0) throw new Error(`No active student for Instructor ${user_id} in Course ${course_id}`);
     res.status(200).send({ message: 'Student marked as done in the queue.' });
   } catch (err) {
@@ -109,14 +98,12 @@ router.post('/removeNoShowStudent', async (req, res) => {
     const user_id = req.body.user_id;
     const course_id = req.body.course_id;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
-    const connection = await mysql.createConnection(config);
-    const [results] = await connection.execute(
+    const [results] = await connect(
       `UPDATE Queues SET queue_request_status = 'CANCELED' 
        WHERE queue_request_status = 'IN_PROGRESS' 
        AND queue_instructor_user_id = ?`,
       [user_id]
     );
-    await connection.end();
     if (results.affectedRows === 0) throw new Error(
       `No active student for Instructor ${user_id} in Course ${course_id}`
     );
@@ -132,15 +119,13 @@ router.post('/setRoomInfo', async (req, res) => {
     const permission_location = req.body.permission_location;
     const course_id = req.body.course_id;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
-    const connection = await mysql.createConnection(config);
-    const [results] = await connection.execute(
+    const [results] = await connect(
       `UPDATE Permissions
       SET permission_location = ?
       WHERE user_id = ?
       AND course_id = ?;`,
       [permission_location, user_id, course_id]
     );
-    await connection.end();
     res.status(200).send(results);
   } catch (err) {
     res.status(500).send(err.message);
@@ -152,13 +137,11 @@ router.get('/getRoomInfo', async (req, res) => {
     const user_id = req.query.user_id;
     const course_id = req.query.course_id;
     // no checkPermissions so students can see
-    const connection = await mysql.createConnection(config);
-    const [results] = await connection.execute(
+    const [results] = await connect(
       `SELECT permission_location FROM Permissions
       WHERE user_id = ? AND course_id = ?;`,
       [user_id, course_id]
     );
-    await connection.end();
     res.status(200).send(results);
   } catch (err) {
     console.log(err.message);
@@ -171,8 +154,7 @@ router.get('/getCurrentlyHelpingStudent', async (req, res) => {
     const user_id = req.query.user_id;
     const course_id = req.query.course_id;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
-    const connection = await mysql.createConnection(config);
-    const [results] = await connection.execute(
+    const [results] = await connect(
       `SELECT U.user_name, Q.queue_topic_description, Q.queue_estimated_time
       FROM Queues Q, Users U
       WHERE U.user_id = Q.user_id
@@ -181,7 +163,6 @@ router.get('/getCurrentlyHelpingStudent', async (req, res) => {
       AND Q.course_id = ?`,
       [user_id, course_id]
     );
-    await connection.end();
     res.status(200).send(results);
   } catch (err) {
     console.log(err.message)

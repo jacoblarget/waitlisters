@@ -34,7 +34,7 @@ function Login({ setToken }) {
         dataIn["password"] = password;
         const parameters = new URLSearchParams(dataIn).toString();
         const response = await fetch(
-            `http://localhost:8080/account/accountSignIn?${parameters}`
+            `http://localhost:8080/account/signIn?${parameters}`
         );
         if (!response.ok) {
             setError("Incorrect username or password");
@@ -84,7 +84,6 @@ function Login({ setToken }) {
                                     onChange={handleUsernameChange}
                                     required
                                 />
-                                {/*pattern="[A-z0-9a-z]+@wisc.edu" title="Please enter a valid UW-Madison email address."*/}
                                 <label
                                     className="text-secondary disabled"
                                     for="username"

@@ -7,6 +7,14 @@ const config = {
   database : 'waitlist'
 };
 
+let connection = null;
+
+async function connect(sql, parameters){
+  if (connection === null) connection = await mysql.createConnection(config);
+  const response = await connection.execute(sql, parameters);
+  return response;
+}
+
 /**
  * This function is to be used within a separate API call to ensure that a given user has the appropriate permissions
  * in a course, i.e. the user is an instructor or a student for the given course.
@@ -21,10 +29,8 @@ const checkPermissions = async (user_id, course_id, type) => {
   );
 
   // Query the Permissions table using the specified parameters.
-  const connection = await mysql.createConnection(config);
   const sql = 'SELECT COUNT(*) FROM Permissions WHERE user_id = ? AND course_id = ? AND permission_type = ?';
-  const [rows] = await connection.execute(sql, [user_id, course_id, type]);
-  await connection.end();
+  const [rows] = await connect(sql, [user_id, course_id, type])
 
   // If there isn't a permission found, return an error.
   if (rows[0]['COUNT(*)'] === 0) throw new Error(
@@ -32,4 +38,4 @@ const checkPermissions = async (user_id, course_id, type) => {
   );
 };
 
-module.exports = {config, checkPermissions};
+module.exports = {connect, checkPermissions};
