@@ -1,16 +1,11 @@
 //Imports
 var express = require('express');
 var router = express.Router();
-var mysql = require('mysql2/promise'); 
 const {connect, checkPermissions} = require('../config');
 
-// Allows a student to add themselves to the waitlist.
 router.post('/enqueue', async (req, res) => {
     try {
-      const user_id = req.body.user_id;
-      const course_id = req.body.course_id;
-      const queue_estimated_time = req.body.queue_estimated_time;
-      const queue_topic_description = req.body.queue_topic_description;
+      const {user_id, course_id, queue_estimated_time, queue_topic_description} = req.body;
       await checkPermissions(user_id, course_id, 'STUDENT');
       const [results] = await connect(
         `INSERT INTO Queues (user_id, course_id, queue_estimated_time, queue_topic_description, queue_request_status)
@@ -24,11 +19,9 @@ router.post('/enqueue', async (req, res) => {
     }
 });
 
-//This route handles POST Request at /exitQueue which allows a student to remove themselves from the waitlist.
 router.post('/exitQueue', async (req, res) => {
     try {
-      const user_id = req.body.user_id;
-      const course_id = req.body.course_id;
+      const {user_id, course_id} = req.body;
       await checkPermissions(user_id, course_id, 'STUDENT');
       const [results] = await connect(
         `UPDATE Queues SET queue_request_status = 'CANCELED' 
@@ -42,11 +35,9 @@ router.post('/exitQueue', async (req, res) => {
     }
   });
 
- // GetQueueStatus;
  router.get('/getQueueStatus', async (req, res) => {
   try {
-    const user_id = req.query.user_id;
-    const course_id = req.query.course_id;
+    const {user_id, course_id} = req.query;
     await checkPermissions(user_id, course_id, 'STUDENT');
     const [results] = await connect(
       `SELECT Q.queue_id, U.user_name,
@@ -70,8 +61,7 @@ router.post('/exitQueue', async (req, res) => {
 
 router.get('/getEntryStatus', async (req,res) =>{
   try {
-    const user_id = req.query.user_id;
-    const course_id = req.query.course_id;
+    const {user_id, course_id} = req.query;
     await checkPermissions(user_id, course_id, 'STUDENT');
     const [results] = await connect(
       `SELECT U.user_id, Q.queue_instructor_user_id AS instructor_id
@@ -83,7 +73,7 @@ router.get('/getEntryStatus', async (req,res) =>{
       AND (Q.queue_request_status = 'WAITING'
       OR Q.queue_request_status = 'IN_PROGRESS')
       ORDER BY Q.queue_timestamp;`,
-      [user_id, course_id,]
+      [user_id, course_id]
     );
     res.status(200).send(results);
   } catch (err) {

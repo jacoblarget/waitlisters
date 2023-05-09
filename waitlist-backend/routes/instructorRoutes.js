@@ -5,8 +5,7 @@ const {connect, checkPermissions} = require('../config');
 
 router.get('/getQueueStatus', async (req, res) => {
   try {
-    const user_id = req.query.user_id;
-    const course_id = req.query.course_id;
+    const {user_id, course_id} = req.query;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
     const [results] = await connect(
       `SELECT Q.queue_id, U.user_name,
@@ -27,32 +26,16 @@ router.get('/getQueueStatus', async (req, res) => {
   }
 });
 
-/**
- * Parameters: user_id, course_id
- * This API endpoint accepts, through the body of the request, the user_id and course_id for the instructor attempting to 
- * Take the next student. If the user is authorized, the student's task will be moved to "IN_PROGRESS" with the instructor 
- * set as the instructor that is helping them.
- * 
- * Returns: Nothing. 200 on success, 401 on error.
- */
 router.post('/takeNextStudent', async (req, res) => {
   try {
-    console.log("Made it here take next student.");
-    // receive user_id and course_id from request body.
-    const user_id = req.body.user_id;
-    const course_id = req.body.course_id;
-
-    // check to make sure that this user is an instructor in this course.
+    console.log("POST/takeNextStudent");
+    const {user_id, course_id} = req.body;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
-
-    // Check if this instructor is already helping a student. If they are, return an error message.
 		const [results] = await connect(
 			`SELECT * FROM Queues WHERE course_id = ? AND queue_request_status = "IN_PROGRESS" AND queue_instructor_user_id = ?;`,
 			[course_id, user_id]
 		);
 		if (results.length > 0) throw new Error(`This instructor is already helping a different student.`);
-
-    // Execute the UPDATE query to set the next person as helping for this instructor.
     const [results2] = await connect(
       `UPDATE Queues 
       SET queue_request_status = "IN_PROGRESS", queue_instructor_user_id = ?
@@ -77,8 +60,7 @@ router.post('/takeNextStudent', async (req, res) => {
 
 router.post('/finishHelpingStudent', async (req, res) => {
   try {
-    const user_id = req.body.user_id;
-    const course_id = req.body.course_id;
+    const {user_id, course_id} = req.body;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
     const [results] = await connect(
       `UPDATE Queues SET queue_request_status = 'DONE'
@@ -95,8 +77,7 @@ router.post('/finishHelpingStudent', async (req, res) => {
 
 router.post('/removeNoShowStudent', async (req, res) => {
   try {
-    const user_id = req.body.user_id;
-    const course_id = req.body.course_id;
+    const {user_id, course_id} = req.body;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
     const [results] = await connect(
       `UPDATE Queues SET queue_request_status = 'CANCELED' 
@@ -115,9 +96,7 @@ router.post('/removeNoShowStudent', async (req, res) => {
 
 router.post('/setRoomInfo', async (req, res) => {
   try {
-    const user_id = req.body.user_id;
-    const permission_location = req.body.permission_location;
-    const course_id = req.body.course_id;
+    const {user_id, permission_location, course_id} = req.body;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
     const [results] = await connect(
       `UPDATE Permissions
@@ -134,8 +113,7 @@ router.post('/setRoomInfo', async (req, res) => {
 
 router.get('/getRoomInfo', async (req, res) => {
   try {
-    const user_id = req.query.user_id;
-    const course_id = req.query.course_id;
+    const {user_id, course_id} = req.query;
     // no checkPermissions so students can see
     const [results] = await connect(
       `SELECT permission_location FROM Permissions
@@ -151,8 +129,7 @@ router.get('/getRoomInfo', async (req, res) => {
 
 router.get('/getCurrentlyHelpingStudent', async (req, res) => {
   try {
-    const user_id = req.query.user_id;
-    const course_id = req.query.course_id;
+    const {user_id, course_id} = req.query;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
     const [results] = await connect(
       `SELECT U.user_name, Q.queue_topic_description, Q.queue_estimated_time

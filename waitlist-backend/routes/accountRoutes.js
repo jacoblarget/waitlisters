@@ -1,17 +1,12 @@
 //Imports
 const express = require('express');
 const router = express.Router();
-const {connect, checkPermissions} = require('../config');
+const connect = require('../config');
 
-/*
- * This api sends only the user id of the user if they are correctly authenticated
- * in the form of a json object. As follows: {user_id: <user_id>}
-*/
 router.get('/signIn', async (req, res) => {
 	try {
-		console.log("Made it here sign in.");
-		const username = req.query.username;
-		const password = req.query.password;
+		console.log("GET/signIn");
+		const {username, password} = req.query;
 		const [results] = await connect(
 			`SELECT * FROM Users WHERE user_email = ? AND user_password = ?`,
 			[username, password]
@@ -23,15 +18,10 @@ router.get('/signIn', async (req, res) => {
 	}
 });
 
-/**
- * This route allows a user to create a new account from the register page.
- * Preconditions: Body must contain {name: "<name>", email: "<email>", password: "<password>" }
- */
 router.post('/createAccount', async (req, res) => {
 	try {
-		const name = req.body.name;
-		const email = req.body.email;
-		const password = req.body.password;
+		console.log("POST/createAccount")
+		const {name, email, password} = req.body;
 		const [results] = await connect(
 			`INSERT INTO Users (user_name, user_email, user_password) VALUES
 			(?,?,?);`,

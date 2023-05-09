@@ -21,8 +21,7 @@ router.get("/getEnrolledCourses", async (req, res) => {
 
 router.post('/joinCourse', async (req, res) => {
   try {
-    const user_id = req.body.user_id;
-    const join_code = req.body.join_code;
+    const {user_id, join_code} = req.body;
     if (!join_code) throw new Error('Invalid Join Code Input.');
     // determine if join code is student or instructor
     const [results] = await connect(
@@ -37,12 +36,8 @@ router.post('/joinCourse', async (req, res) => {
       WHERE course_instructor_join_code=?;`,[join_code, join_code]
     );
     if (!results.length) throw new Error(`Invalid Join Code Database.`);
-    console.log(results[0]);
     const course_id = results[0]["course_id"];
     const permission_type = results[0]["permission_type"];
-    console.log(permission_type);
-      
-    // Add this user with their appropriate permission
     const [results3] = await connect(
     `INSERT INTO Permissions (course_id, user_id, permission_type) VALUES (?, ?, ?);`,
     [course_id, user_id, permission_type]
@@ -60,10 +55,7 @@ router.post('/joinCourse', async (req, res) => {
 router.post('/createCourse', async (req, res) => {
   try {
     console.log("POST/createCourse");
-    const user_id = req.body.user_id;
-    const course_name = req.body.course_name;
-    const course_description = req.body.course_description;
-
+    const {user_id, course_name, course_description} = req.body;
     const course_student_join_code = generateNcharAlphaCode(5);
     const course_instructor_join_code = generateNcharAlphaCode(8);
     
@@ -82,7 +74,6 @@ router.post('/createCourse', async (req, res) => {
 		if (results.length === 0) throw new Error(`Error Inserting entry into courses table.`);
 
     const course_id = results2[0]['LAST_INSERT_ID()'];
-    console.log(course_id);
     const [results3] = await connect(
       `INSERT INTO Permissions (course_id, user_id, permission_type) VALUES (?, ?, "INSTRUCTOR");`,
       [course_id, user_id]
@@ -116,8 +107,7 @@ function generateNcharAlphaCode(N){
 
 router.get("/GetCourseJoinCodes", async (req, res) => {
   try {
-    const user_id = req.query.user_id;
-    const course_id = req.query.course_id;
+    const { user_id, course_id} = req.query;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
     const [results] = await connect(
       `SELECT course_student_join_code, course_instructor_join_code FROM Courses WHERE course_id = ?;`,

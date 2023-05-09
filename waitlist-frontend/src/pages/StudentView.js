@@ -63,7 +63,7 @@ function StudentView() {
     <nav class="navbar navbar-dark bg-dark justify-content-between">
       <a className="navbar-brand" href="/">FIFO</a>
       <div class="col">
-        <p class="navbar-brand mb-0 h1 text-center">Welcome to your Student View for Course {course_id}, @{user_id}</p>
+        <p class="navbar-brand mb-0 h1 text-center">Welcome to your Student View for Course {course_id}, @{user_id}!</p>
       </div>
       <div class="col-lg-3 text-end">
         <a class="btn btn-outline-light btn-lg px-2 mx-2 my-2 my-sm-0" href={"/dashboard/" + user_id}>Back to Dashboard</a>
