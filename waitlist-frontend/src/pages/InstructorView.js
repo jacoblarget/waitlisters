@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Queue from "./subpages/Queue.js";
-import "/app/src/App.css";
+import "/app/src/index.css";
 import { useParams } from "react-router-dom";
 import { get, post } from "../api";
 

@@ -1,17 +1,29 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React, { useState } from "react";
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Register from "./pages/Register";
+import Homepage from "./pages/Homepage";
+import StudentView from "./pages/StudentView";
+import Dashboard from "./pages/Dashboard";
+import InstructorView from "./pages/InstructorView";
+import Login from "./pages/Login";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+function App() {
+  const [token, setToken] = useState("");
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={token ? (<Navigate to={`/dashboard/${token}`} />) : (<Homepage />)} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/studentview/:user_id/:course_id" element={token ? (<StudentView />) : (<Navigate to="/" />)} />
+        <Route path="/instructorview/:user_id/:course_id" element={token ? (<InstructorView />) : (<Navigate to="/" />)} />
+        <Route path="/login" element={<Login token={token} setToken={setToken} />} />
+        <Route path="/dashboard/:user_id" element={token ? (<Dashboard setToken={setToken} />) : (<Navigate to="/" />)} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+const root = createRoot(document.getElementById('root'));
+root.render(<App/>);
+

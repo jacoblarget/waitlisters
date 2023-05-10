@@ -1,92 +1,23 @@
 import React, { useState } from "react";
-import "/app/src/App.css";
+import "/app/src/index.css";
 import { Navigate, Link} from "react-router-dom";
+import { post } from "../api";
 
 function Register() {
-    // These are the current state of the webpage, which are the values of the textbox entries.
-    const [firstname, setFirstName] = useState("");
-    const [lastname, setLastName] = useState("");
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [registerStatus, setRegisterStatus] = useState("");
     const [accountCreated, setAccountCreated] = useState(false);
 
-    // These functions handle updating the state variables to match the values in the textboxes.
-    const handleFirstNameChange = (event) => {
-        setFirstName(event.target.value);
-    };
-    const handleLastNameChange = (event) => {
-        setLastName(event.target.value);
-    };
-    const handleEmailChange = (event) => {
-        setEmail(event.target.value);
-    };
-    const handlePasswordChange = (event) => {
-        setPassword(event.target.value);
-    };
-    const handleConfirmPasswordChange = (event) => {
-        setConfirmPassword(event.target.value);
-    };
-
-    // Function is run on submit. We need to start the process of sending the data to the backend.
-    const handleSubmit = (event) => {
-        event.preventDefault();
-
-        // handle form submission here
-        submitCreateAccount();
-    };
-
-    // Details about the post request.
-    const postOptions = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-    };
-
-    /**
-     * Send the post request to the backend.
-     */
-    async function submitCreateAccount() {
-        // Construct the body of the request.
-        const dataIn = {
-            name: firstname + " " + lastname,
-            email: email,
-            password: password,
-        };
-
-        // Convert to a JSON object
-        postOptions["body"] = JSON.stringify(dataIn);
-
-        //Set Base Register Status to Empty String
-        setRegisterStatus("");
-
-        //Check if email is a @wisc.edu email
-        if (!(new RegExp('@wisc.edu$')).test(email)) {
-            setRegisterStatus("Invalid Wisc Email");
-            return;
-        }
-
-        //Check if passwords match
-        if (password !== confirmPassword){
-            setRegisterStatus("Passwords don't match");
-            return;
-        }
-
-        // Send the request to add account to the database
-        const response = await fetch(
-            `http://localhost:8080/account/createAccount`,
-            postOptions
-        );
-
-        if (!response.ok){
-            throw new Error(`error making account: ${response.statusText}`);
-        }
-        if (response.ok) {
-          setAccountCreated(true);
-        }
+    async function createAccount() {
+        const request = {name, email, password};
+        if (!(new RegExp('@wisc.edu$')).test(email)) throw new Error("Invalid Wisc Email"); // ends @wisc.edu
+        if (password !== confirmPassword) throw new Error("Passwords don't match"); // passwords match
+        const response = await post("createAccount",request,"http://localhost:8080/account");
+        if (response.ok) setAccountCreated(true);
     }
 
-    // Return the HTML for the page.
     if (accountCreated) {
         return <Navigate to={`/login`} />;
     } else {
@@ -110,42 +41,25 @@ function Register() {
                 </section>
             <div className="App Credentials">
                 <div class="card-body card mt-3 p-5">
-                    <form className="form-group" onSubmit={handleSubmit}>
+                    <form className="form-group" onSubmit={createAccount}>
                         <h1 className="m-3 fw-normal h3">
                             Create a FIFO Account
                         </h1>
                         <div className="form-floating mb-3 mx-3">
                             <input
                                 className="form-control bottom-border bg-dark text-light w-150"
-                                id="firstName"
+                                id="name"
                                 type="text"
-                                placeholder="First Name"
-                                value={firstname}
-                                onChange={handleFirstNameChange}
+                                placeholder="First and Last Name"
+                                value={name}
+                                onChange={(e) => {setName(e.target.value)}}
                                 required
                             />
                             <label
                                 className="text-secondary disabled"
-                                for="firstName"
+                                htmlFor="name"
                             >
-                                First Name
-                            </label>
-                        </div>
-                        <div className="form-floating mb-3 mx-3">
-                            <input
-                                className="form-control bottom-border bg-dark text-light w-150"
-                                id="lastName"
-                                type="text"
-                                placeholder="Last Name"
-                                value={lastname}
-                                onChange={handleLastNameChange}
-                                required
-                            />
-                            <label
-                                className="text-secondary disabled"
-                                for="lastName"
-                            >
-                                Last Name
+                                Name
                             </label>
                         </div>
                         <div className="form-floating mb-3 mx-3">
@@ -155,7 +69,7 @@ function Register() {
                                 placeholder="Email Address"
                                 type="email"
                                 value={email}
-                                onChange={handleEmailChange}
+                                onChange={(e) => {setEmail(e.target.value)}}
                                 required
                             />
                             <label
@@ -172,12 +86,12 @@ function Register() {
                                 type="password"
                                 placeholder="Password"
                                 value={password}
-                                onChange={handlePasswordChange}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
                             <label
                                 className="text-secondary disabled"
-                                for="password"
+                                htmlFor="password"
                             >
                                 Password
                             </label>
@@ -189,12 +103,12 @@ function Register() {
                                 type="password"
                                 placeholder="Confirm Password"
                                 value={confirmPassword}
-                                onChange={handleConfirmPasswordChange}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
                             />
                             <label
                                 className="text-secondary disabled"
-                                for="confirmPassword"
+                                htmlFor="confirmPassword"
                             >
                                 Confirm Password
                             </label>
@@ -203,14 +117,11 @@ function Register() {
                             <button
                                 className="btn btn-primary mb-2"
                                 type="submit"
-                                onSubmit={handleSubmit}
+                                onSubmit={createAccount}
                             >
                                 Register
                             </button>
                         </div>
-                        <p>
-                            {registerStatus}
-                        </p> 
                     </form>
                     <p class="mt-5 mb-3 text-body-secondary">
                         © 2023 Waitlisters

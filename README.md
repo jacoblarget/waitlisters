@@ -1,6 +1,6 @@
 ---
 title: Waitlisters
-authors: 6 UW-Madison Students
+authors: Jacob Larget, Mayank Nayak, Eric Dubberstein, Connor Flint, Michael Brudos, Kanishk Saxena
 ---
 
 # Welcome to Waitlisters!

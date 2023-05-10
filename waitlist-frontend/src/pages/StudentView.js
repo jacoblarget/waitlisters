@@ -1,4 +1,4 @@
-import "../App.css";
+import "../index.css";
 import Queue from "./subpages/Queue";
 import { useParams } from "react-router-dom";
 import React, { useEffect, useState} from "react";
