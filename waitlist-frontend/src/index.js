@@ -9,7 +9,7 @@ import InstructorView from "./pages/InstructorView";
 import Login from "./pages/Login";
 
 function App() {
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState(0);
   return (
     <BrowserRouter>
       <Routes>
@@ -17,13 +17,14 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/studentview/:user_id/:course_id" element={token ? (<StudentView />) : (<Navigate to="/" />)} />
         <Route path="/instructorview/:user_id/:course_id" element={token ? (<InstructorView />) : (<Navigate to="/" />)} />
-        <Route path="/login" element={<Login token={token} setToken={setToken} />} />
+        <Route path="/login" element={<Login setToken={setToken} />} />
         <Route path="/dashboard/:user_id" element={token ? (<Dashboard setToken={setToken} />) : (<Navigate to="/" />)} />
       </Routes>
     </BrowserRouter>
   );
 }
 
+export default App;
+
 const root = createRoot(document.getElementById('root'));
 root.render(<App/>);
-

@@ -1,32 +1,27 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import "../index.css";
-import { Link, Navigate } from "react-router-dom";
-import { get } from "../api";
+import { Link, useNavigate } from "react-router-dom";
+import { post } from "../api";
 
 function storeToken(userToken) {
     localStorage.setItem("token", JSON.stringify(userToken));
 }
 
-function Login({ token, setToken }) {
+function Login({ setToken }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const navigate = useNavigate();
+
     async function signIn(event) {
         event.preventDefault();
-        try {
-            const request = {username, password};
-            const response = await get('signIn', request, 'http://localhost:8080/account');
-            console.log(`Login.js: ${response}`); // not seen
-            if (response.ok) {
-                setToken(response.user_id);
-                storeToken(response.user_id);
-                return <Navigate to={`/dashboard/${token}`} />;
-            } else {
-                console.error(response);
-            }
-        } catch (error) {
-            console.error(error);
-        }
+        const request = {username, password};
+        const response = await post('signIn', request, 'http://localhost:8080/account');
+        console.log(`Login.js: ${response.user_id}`);
+        setToken(response.user_id);
+        storeToken(response.user_id);
+        navigate(`/dashboard/${response.user_id}`);
+        console.log(`Got in with ${username}, ${password}?`);
     }
     
     return(<>
@@ -104,6 +99,7 @@ function Login({ token, setToken }) {
 
 Login.propTypes = {
     setToken: PropTypes.func.isRequired,
+    token: PropTypes.number.isRequired,
 };
 
 export default Login; // adds component to application

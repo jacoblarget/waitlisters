@@ -51,7 +51,7 @@ function Dashboard({ setToken, useAuth }) {
     <nav class="navbar navbar-dark bg-dark justify-content-between">
       <a className="navbar-brand" href="/">FIFO</a>
       <div class="col">
-        <p class="navbar-brand mb-0 h1 text-center">Welcome to your Dashboard, @{user_id}!</p>
+        <p className="navbar-brand mb-0 h1 text-center">Welcome to your Dashboard, @{user_id}!</p>
       </div>
       <div class="col-lg-3 text-end">
         <button class="btn btn-outline-light btn-lg px-2 mx-2 my-2 my-sm-0" type="submit" onClick={handleSignOut}> Sign Out </button>

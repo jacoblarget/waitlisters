@@ -3,10 +3,10 @@ const express = require('express');
 const router = express.Router();
 const { connect } = require('../config');
 
-router.get('/signIn', async (req, res) => {
+router.post('/signIn', async (req, res) => {
 	try {
-		console.log("GET/signIn");
-		const {username, password} = req.query;
+		console.log("POST/signIn");
+		const {username, password} = req.body;
 		console.log(username, password);
 		const [results] = await connect(
 			`SELECT * FROM Users WHERE user_email = ? AND user_password = ?`,
