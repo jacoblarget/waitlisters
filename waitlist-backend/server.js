@@ -1,35 +1,26 @@
 'use strict';
 //Imports
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+// above code doesn't work :/
 const express = require('express');
-var cors = require("cors");
-var accountRouter = require('./routes/accountRoutes');
-var studentRouter = require('./routes/studentRoutes');
-var instructorRouter = require('./routes/instructorRoutes');
-var dashboardRouter = require('./routes/dashboardRoutes');
+const cors = require("cors");
+const accountRouter = require('./routeAccount');
+const studentRouter = require('./routeStudent');
+const instructorRouter = require('./routeInstructor');
+const dashboardRouter = require('./routeDashboard');
 
 // Constants
-const PORT = 8080;
+const PORT = process.env.BACKEND_PORT || 8080; // default needed, .env isn't working
 const HOST = '0.0.0.0';
 
-// Declare the Express App
 const app = express();
-
-//Allow Cross-Origin Resource Sharing in the app
-app.use(cors());
-
-//Allows us the ability to parse the 'body' of HTTP Requests
-app.use(express.json());
-
-// Tells server.js which file is responsible for handling authentication
-app.use('/account', accountRouter)
-
-//Tells server.js which file is responsible for the handling of /student HTTP Requests
+app.use(cors()); // lets us talk between containers
+app.use(express.json()); // lets us parse the 'body' of HTTP Requests
+// maps API requests to route files
+app.use('/account', accountRouter);
 app.use('/student', studentRouter);
-
-//Tells server.js which file is responsible for the handling of /instructor HTTP Requests
 app.use('/instructor', instructorRouter);
-
-//Tells server.js which file is responsible for the handling of /dashboard HTTP Requests
 app.use('/dashboard', dashboardRouter);
 
 //Binds our app to specified port and listens for incoming HTTP requests

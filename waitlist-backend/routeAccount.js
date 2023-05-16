@@ -1,7 +1,7 @@
 //Imports
 const express = require('express');
 const router = express.Router();
-const { connect } = require('../config');
+const { connect } = require('./config');
 
 router.post('/signIn', async (req, res) => {
 	try {

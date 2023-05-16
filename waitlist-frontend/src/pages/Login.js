@@ -23,6 +23,7 @@ function Login({ setToken }) {
           setToken(response.user_id);
           storeToken(response.user_id);
           navigate(`/dashboard/${response.user_id}`);
+          toast.success("Sign In Successful");
         } catch (error) {
           toast.error(error.response.data);
         }

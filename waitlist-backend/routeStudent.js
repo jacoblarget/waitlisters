@@ -1,7 +1,7 @@
 //Imports
 var express = require('express');
 var router = express.Router();
-const {connect, checkPermissions} = require('../config');
+const {connect, checkPermissions} = require('./config');
 
 router.post('/enterQueue', async (req, res) => {
     try {

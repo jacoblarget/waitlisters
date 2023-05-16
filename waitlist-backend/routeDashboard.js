@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {connect, checkPermissions} = require("../config");
+const {connect, checkPermissions} = require("./config");
 
 router.get("/getEnrolledCourses", async (req, res) => {
   try {
