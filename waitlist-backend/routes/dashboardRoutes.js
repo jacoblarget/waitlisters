@@ -21,6 +21,7 @@ router.get("/getEnrolledCourses", async (req, res) => {
 
 router.post('/joinCourse', async (req, res) => {
   try {
+    console.log('POST/joinCourse');
     const {user_id, join_code} = req.body;
     if (!join_code) throw new Error('Invalid Join Code Input.');
     // determine if join code is student or instructor

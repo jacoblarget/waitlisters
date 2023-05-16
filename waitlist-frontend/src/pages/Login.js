@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import "../index.css";
 import { Link, useNavigate } from "react-router-dom";
 import { post } from "../api";
+import { Toaster, toast } from "react-hot-toast";
 
 function storeToken(userToken) {
     localStorage.setItem("token", JSON.stringify(userToken));
@@ -15,16 +16,20 @@ function Login({ setToken }) {
 
     async function signIn(event) {
         event.preventDefault();
-        const request = {username, password};
-        const response = await post('signIn', request, 'http://localhost:8080/account');
-        console.log(`Login.js: ${response.user_id}`);
-        setToken(response.user_id);
-        storeToken(response.user_id);
-        navigate(`/dashboard/${response.user_id}`);
-        console.log(`Got in with ${username}, ${password}?`);
-    }
+        const request = { username, password };
+    
+        try {
+          const response = await post("signIn", request, "http://localhost:8080/account");
+          setToken(response.user_id);
+          storeToken(response.user_id);
+          navigate(`/dashboard/${response.user_id}`);
+        } catch (error) {
+          toast.error(error.response.data);
+        }
+      }
     
     return(<>
+        <Toaster position="bottom-center" />
         <section id="title bg-success">
             <nav className="navbar navbar-dark bg-light text-dark justify-content-between">
                 <a className="navbar-brand text-dark" href="/">

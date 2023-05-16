@@ -7,16 +7,13 @@ router.post('/signIn', async (req, res) => {
 	try {
 		console.log("POST/signIn");
 		const {username, password} = req.body;
-		console.log(username, password);
 		const [results] = await connect(
 			`SELECT * FROM Users WHERE user_email = ? AND user_password = ?`,
 			[username, password]
 		);
-		console.log(results);
 		if (!results.length) throw new Error(`Invalid password`);
 		res.status(200).send({user_id: results[0].user_id}); 
 	} catch (err) {
-		console.error(err.message);
 		res.status(401).send(err.message);
 	}
 });

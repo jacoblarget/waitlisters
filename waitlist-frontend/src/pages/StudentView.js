@@ -44,11 +44,11 @@ function StudentView() {
     return () => clearInterval(interval); // clean unmount
   }, [user_id, course_id]);
 
-  async function enqueue() {
+  async function enterQueue() {
     const request = {user_id: user_id, course_id: course_id,
       queue_estimated_time: queue_time || 5, // set default
       queue_topic_description: queue_topic_description};
-    await post('enqueue', request, studentBaseURL);
+    await post('enterQueue', request, studentBaseURL);
   }
   async function exitQueue(){
     const request = {user_id, course_id};
@@ -83,7 +83,7 @@ function StudentView() {
               </div>
               <div class="d-flex justify-content-center align-items-center">
                 <div class="w-75">
-                  <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" onClick={enqueue} hidden={mode !== "ENTER"}>Enter Waitlist</button>
+                  <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" onClick={enterQueue} hidden={mode !== "ENTER"}>Enter Waitlist</button>
                   <button class="btn btn-dark btn-sm btn-block mt-2 btn-modified" onClick={exitQueue} hidden={mode !== "EXIT"}>Leave Waitlist</button>
                   <p class="text-center mt-2" hidden={mode !== "SELECTED"}>You've been selected! Head to {instructorLocation}</p>
                 </div>

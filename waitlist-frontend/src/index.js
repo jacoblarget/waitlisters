@@ -7,6 +7,7 @@ import StudentView from "./pages/StudentView";
 import Dashboard from "./pages/Dashboard";
 import InstructorView from "./pages/InstructorView";
 import Login from "./pages/Login";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const [token, setToken] = useState(0);
@@ -20,7 +21,9 @@ function App() {
         <Route path="/login" element={<Login setToken={setToken} />} />
         <Route path="/dashboard/:user_id" element={token ? (<Dashboard setToken={setToken} />) : (<Navigate to="/" />)} />
       </Routes>
+    <Toaster position="bottom-center" />
     </BrowserRouter>
+    
   );
 }
 

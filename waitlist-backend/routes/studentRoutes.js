@@ -3,8 +3,9 @@ var express = require('express');
 var router = express.Router();
 const {connect, checkPermissions} = require('../config');
 
-router.post('/enqueue', async (req, res) => {
+router.post('/enterQueue', async (req, res) => {
     try {
+      console.log('POST/enterQueue');
       const {user_id, course_id, queue_estimated_time, queue_topic_description} = req.body;
       await checkPermissions(user_id, course_id, 'STUDENT');
       const [results] = await connect(
@@ -14,13 +15,13 @@ router.post('/enqueue', async (req, res) => {
       );
       res.status(200).send(results);
     } catch (err) {
-      console.error(err);
       res.status(500).send(err.message);
     }
 });
 
 router.post('/exitQueue', async (req, res) => {
     try {
+      console.log('POST/exitQueue');
       const {user_id, course_id} = req.body;
       await checkPermissions(user_id, course_id, 'STUDENT');
       const [results] = await connect(

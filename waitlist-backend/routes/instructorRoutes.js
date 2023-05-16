@@ -53,13 +53,13 @@ router.post('/takeNextStudent', async (req, res) => {
         );
     res.status(200).send({ results3, message: 'Student removed from the queue.' });
   } catch (err) {
-    console.log(err.message);
     res.status(401).send(err.message);
   }
 });
 
 router.post('/finishHelpingStudent', async (req, res) => {
   try {
+    console.log('POST/finishHelpingStudent');
     const {user_id, course_id} = req.body;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
     const [results] = await connect(
@@ -77,6 +77,7 @@ router.post('/finishHelpingStudent', async (req, res) => {
 
 router.post('/removeNoShowStudent', async (req, res) => {
   try {
+    console.log('POST/removeNoShowStudent');
     const {user_id, course_id} = req.body;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
     const [results] = await connect(
@@ -96,6 +97,7 @@ router.post('/removeNoShowStudent', async (req, res) => {
 
 router.post('/setRoomInfo', async (req, res) => {
   try {
+    console.log('POST/setRoomInfo');
     const {user_id, permission_location, course_id} = req.body;
     await checkPermissions(user_id, course_id, 'INSTRUCTOR');
     const [results] = await connect(
@@ -142,7 +144,6 @@ router.get('/getCurrentlyHelpingStudent', async (req, res) => {
     );
     res.status(200).send(results);
   } catch (err) {
-    console.log(err.message)
     res.status(401).send(err.message);
   }
 });
