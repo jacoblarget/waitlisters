@@ -1,9 +1,15 @@
 ---
 title: Waitlisters
-authors: Jacob Larget, Mayank Nayak, Eric Dubberstein, Connor Flint, Michael Brudos, Kanishk Saxena
+authors:
+- Jacob Larget
+- Mayank Nayak
+- Eric Dubberstein
+- Connor Flint
+- Michael Brudos
+- Kanishk Saxena
 ---
 
-# Welcome to Waitlisters!
+# Welcome!
 
 Our web application is designed to help college students and instructors organize office hours queues efficiently. It helps students view estimated wait times for help in the courses that they are enrolled in. Moreover, it allows instructors to manage students desiring help in the course that they are teaching. Additional features include  notifying students in real-time of their status on the queue.
 
