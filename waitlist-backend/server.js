@@ -1,8 +1,6 @@
 'use strict';
-//Imports
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-// above code doesn't work :/
+require('dotenv').config();
+// .env must be copied from the main directory to waitlist-backend for now
 const express = require('express');
 const cors = require("cors");
 const accountRouter = require('./routeAccount');
@@ -10,9 +8,8 @@ const studentRouter = require('./routeStudent');
 const instructorRouter = require('./routeInstructor');
 const dashboardRouter = require('./routeDashboard');
 
-// Constants
-const PORT = process.env.BACKEND_PORT || 8080; // default needed, .env isn't working
-const HOST = '0.0.0.0';
+const PORT = process.env.BACKEND_PORT;
+const HOST = process.env.BACKEND_HOST;
 
 const app = express();
 app.use(cors()); // lets us talk between containers
@@ -23,7 +20,7 @@ app.use('/student', studentRouter);
 app.use('/instructor', instructorRouter);
 app.use('/dashboard', dashboardRouter);
 
-//Binds our app to specified port and listens for incoming HTTP requests
+// listens for HTTP Requests from the following address
 app.listen(PORT, HOST, () => {
   console.log(`Running on http://${HOST}:${PORT}`);
 });
