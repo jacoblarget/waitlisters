@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import Register from "./pages/Register";
-import Homepage from "./pages/Homepage";
-import StudentView from "./pages/StudentView";
-import Dashboard from "./pages/Dashboard";
-import InstructorView from "./pages/InstructorView";
-import Login from "./pages/Login";
+import Register from "./pageRegister";
+import Homepage from "./pageHome";
+import StudentView from "./pageStudent";
+import Dashboard from "./pageDashboard";
+import InstructorView from "./pageInstructor";
+import Login from "./pageLogin";
 import { Toaster } from "react-hot-toast";
 
 function App() {

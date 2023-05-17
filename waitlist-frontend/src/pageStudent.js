@@ -1,10 +1,10 @@
-import "../index.css";
-import Queue from "./subpages/Queue";
+import "./index.css";
+import Queue from "./Queue";
 import { useParams } from "react-router-dom";
 import React, { useEffect, useState} from "react";
-import { get, post } from "../api";
+import { get, post } from "./api";
 
-function StudentView() {
+export default function StudentView() {
   // globals
   const studentBaseURL = 'http://localhost:8080/student';
   const instructorBaseURL = 'http://localhost:8080/instructor';
@@ -103,4 +103,3 @@ function StudentView() {
   </div>
   </>);
 }
-export default StudentView; // adds component to application

@@ -1,8 +1,8 @@
-import "../index.css";
+import "./index.css";
 import React from "react";
 import { Link } from "react-router-dom";
 
-function Homepage(){
+export default function Homepage(){
     return (<>
         <section id="title bg-success">
                 <nav className="navbar navbar-dark bg-dark justify-content-between">
@@ -103,4 +103,3 @@ function Homepage(){
             </section>
         </>);
 }
-export default Homepage;

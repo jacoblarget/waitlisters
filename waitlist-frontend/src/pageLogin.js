@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import "../index.css";
+import "./index.css";
 import { Link, useNavigate } from "react-router-dom";
-import { post } from "../api";
+import { post } from "./api";
 import { Toaster, toast } from "react-hot-toast";
 
 function storeToken(userToken) {
     localStorage.setItem("token", JSON.stringify(userToken));
 }
 
-function Login({ setToken }) {
+export default function Login({ setToken }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
@@ -104,8 +104,5 @@ function Login({ setToken }) {
 }
 
 Login.propTypes = {
-    setToken: PropTypes.func.isRequired,
-    token: PropTypes.number.isRequired,
+    setToken: PropTypes.func.isRequired
 };
-
-export default Login; // adds component to application

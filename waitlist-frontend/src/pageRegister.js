@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import "/app/src/index.css";
+import "./index.css";
 import { Navigate, Link} from "react-router-dom";
-import { post } from "../api";
+import { post } from "./api";
 
-function Register() {
+export default function Register() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -132,4 +132,3 @@ function Register() {
     );
 }
 }
-export default Register;

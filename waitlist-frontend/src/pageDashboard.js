@@ -1,10 +1,10 @@
-import "/app/src/index.css";
+import "./index.css";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import { get, post } from "../api";
+import { get, post } from "./api";
 
-function Dashboard({ setToken, useAuth }) {
+export default function Dashboard({ setToken, useAuth }) {
     const dashboardBaseURL = "http://localhost:8080/dashboard";
     const { user_id } = useParams();
     const [course_list, setCourseList] = useState([]);
@@ -120,4 +120,3 @@ function Dashboard({ setToken, useAuth }) {
   </div>    
     </>);
 }
-export default Dashboard;

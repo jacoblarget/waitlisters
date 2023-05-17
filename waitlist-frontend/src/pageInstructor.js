@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
-import Queue from "./subpages/Queue.js";
-import "/app/src/index.css";
+import Queue from "./Queue";
+import "./index.css";
 import { useParams } from "react-router-dom";
-import { get, post } from "../api";
+import { get, post } from "./api";
 
-
-function InstructorView() {
-
+// defines "./pageInstructor" as a valid import
+export default function InstructorView(){
   // component-wide variables
   const instructorBaseURL = 'http://localhost:8080/instructor';
   const headers = ["Position","Name","Estimated Time","Query Description","Instructor"];
@@ -115,4 +114,3 @@ function InstructorView() {
 </div>
 </>);
 }
-export default InstructorView; // adds component to application
