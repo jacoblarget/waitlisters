@@ -2,7 +2,7 @@
 
 Our web application is designed to help organize office hour waitlists equitably and efficiently, so students and instructors alike are freed to focus on the content at hand. Given our collective experience as students and peer mentors, we recognize the value of streamlining the management of a high student to instructor ratio, especially right before deadlines.
 
-It will be available for use at `TODO`.
+It will be available for use pending [refactoring](https://github.com/jacoblarget/office-ours) at [https://officeours.vercel.app/](https://office-ours.vercel.app/).
 
 ## Authors
 
