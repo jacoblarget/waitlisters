@@ -45,6 +45,8 @@ In the main directory, run:
 
 If you notice a mistake or want to try this out yourself, fork away! Note the diagrams below are made using `pydot` ( see `schema_drawer.py`)
 
+@TODO: update these to use mermaid Markdown-ish syntax for rendering in browsers/screenshot insertion if necessary.
+
 ## Client Accessibility (UX)
 
 ### Page Schema
